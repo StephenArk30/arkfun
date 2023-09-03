@@ -2,13 +2,6 @@ import typescript from '@rollup/plugin-typescript';
 import { getBabelOutputPlugin } from '@rollup/plugin-babel';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 
-/**
- * get rollup config
- * @param {boolean} useTs
- * @param {string} input
- * @param {(options: T) => T} babelOptions do something with babel options
- * @returns {any} config
- */
 export default function getConfig(useTs, input, babelOptions = (options) => options) {
   return {
     input,
