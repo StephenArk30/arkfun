@@ -2,6 +2,13 @@
   "name": "@arkfun/${name}",
   "version": "0.0.0",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "StephenArk30/arkfun",
+    "directory": "packages/${name}"
+  },
+  "homepage": "https://github.com/StephenArk30/arkfun/tree/master/packages/${name}#readme",
+  "keywords": [],
   "main": "dist/${name}.umd.js",
   "module": "dist/${name}.esm.js",
   "directories": {

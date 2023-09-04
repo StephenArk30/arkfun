@@ -5,5 +5,12 @@
   "main": "index.js",
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "StephenArk30/arkfun",
+    "directory": "packages/pkg-cli"
+  },
+  "homepage": "https://github.com/StephenArk30/arkfun/tree/master/packages/pkg-cli#readme",
+  "keywords": ["monorepo", "cli"]
 }
