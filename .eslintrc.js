@@ -38,6 +38,7 @@ module.exports = {
     'import/no-extraneous-dependencies': ['error', {
       packageDir: ['.'],
     }],
+    'no-continue': 'off',
   },
   settings: {
     'import/resolver': {
