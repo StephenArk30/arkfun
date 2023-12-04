@@ -5,12 +5,14 @@
     "packages/*"
   ],
   "scripts": {
-    "add-pkg": "node packages/pkg-cli/cli.js create"
+    "add-pkg": "node packages/pkg-cli/cli.cjs create"
   },
   "dependencies": {
     "@arkfun/pkg-cli": "^0.1.0-alpha.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.23.5",
+    "@babel/preset-env": "^7.23.5",
     "@rollup/plugin-babel": "^6.0.3",
     "@rollup/plugin-node-resolve": "^15.2.1",
     "@rollup/plugin-typescript": "^11.1.3",

@@ -1,1 +1,2 @@
-export { default as getConfig } from './src/rollup.util';
+export { default as getConfig } from './src/rollup.util.js';
+

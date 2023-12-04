@@ -1,8 +1,8 @@
 const path = require('path');
 const fs = require('fs');
 const readline = require('readline');
-const createUtil = require('./src/create');
-const fileUtil = require('./src/file');
+const createUtil = require('./src/create.cjs');
+const fileUtil = require('./src/file.cjs');
 
 const args = process.argv.slice(2);
 const rl = readline.createInterface({

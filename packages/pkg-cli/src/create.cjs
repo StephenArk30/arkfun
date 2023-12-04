@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { writeFileSync } = require('./file');
+const { writeFileSync } = require('./file.cjs');
 const cliPkgInfo = require('../package.json');
 const packageJsonTemplate = require('../templates/package.template.json');
 const tsConfigTemplate = require('../templates/tsconfig.template.json');

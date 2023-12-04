@@ -3,7 +3,7 @@
 > Internal used cli.
 
 ```shell
-node cli.js create ${NAME}
+node cli.cjs create ${NAME}
 ```
 
 This will create a package with default rollup and typescript config, along with the default package.json.
