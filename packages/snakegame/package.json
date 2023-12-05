@@ -1,0 +1,32 @@
+{
+  "name": "@arkfun/snakegame",
+  "version": "0.0.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "StephenArk30/arkfun",
+    "directory": "packages/snakegame"
+  },
+  "homepage": "https://github.com/StephenArk30/arkfun/tree/master/packages/snakegame#readme",
+  "keywords": [],
+  "main": "dist/snakegame.cjs",
+  "module": "dist/snakegame.mjs",
+  "directories": {
+    "dist": "dist",
+    "src": "src"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "cross-env NODE_ENV=production && rollup -c rollup.config.ts --configPlugin typescript",
+    "dev": "cross-env NODE_ENV=development && rollup -w -c rollup.dev.config.ts --configPlugin typescript",
+    "prepublish": "yarn clean",
+    "publish": "yarn build"
+  }
+}
