@@ -20,4 +20,4 @@ export interface Env<ActType, ObsType, RenderFrame> {
   close: () => void;
 }
 
-export type AIFunction<ActType, ObsType> = (obs: ObsType) => ActType | Promise<ActType>;
+export type AIFunction<ActType, ObsType> = (obs: ObsType) => Promise<ActType>;

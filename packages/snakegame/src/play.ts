@@ -54,9 +54,9 @@ export function PlaySnakeGame(
   if (debug) printMap(observation);
   let done = false;
   let action;
-  function performOneFrame() {
+  async function performOneFrame() {
     env.render();
-    action = snakeAI(observation);
+    action = await snakeAI(observation);
     const { observation: _obs, done: _done } = env.step(action);
     observation = _obs;
     if (debug) printMap(observation);

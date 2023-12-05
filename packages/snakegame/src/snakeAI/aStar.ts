@@ -32,7 +32,7 @@ const getVDirection = (direction: SnakeDirection) => (
 );
 
 // a*: f(n) = g(n) + h(n)
-export const aStar: SnakeAIFunction = (obs) => {
+export const aStar: SnakeAIFunction = async (obs) => {
   const [x, y] = obs.snake.head.toArray();
 
   const Fs = {
