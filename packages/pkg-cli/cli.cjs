@@ -79,8 +79,8 @@ async function create() {
     createUtil.createTsConfig(pkgPath, debug);
   }
   createUtil.createEntry(pkgPath, entry, debug);
-  createUtil.createRollupConfig(pkgPath, useTs, entry, debug);
-  createUtil.createRollupDevConfig(pkgPath, path.basename(entry), debug);
+  createUtil.createRollupConfig(pkgPath, entry, `{ useTs: ${useTs} }`, debug);
+  createUtil.createRollupDevConfig(pkgPath, path.basename(entry), `{ useTs: ${useTs} }`, debug);
   if (readme) {
     fileUtil.writeFileSync(path.resolve(pkgPath, 'README.md'), `# ${pkgName}`);
   }
@@ -90,13 +90,13 @@ async function create() {
 }
 
 switch (args[0]) {
-  case 'create':
-    create().then(() => process.exit(0));
-    break;
-  case 'help':
-  case '-h':
-  default:
-    printHelpAndExit();
-    process.exit(0);
-    break;
+case 'create':
+  create().then(() => process.exit(0));
+  break;
+case 'help':
+case '-h':
+default:
+  printHelpAndExit();
+  process.exit(0);
+  break;
 }

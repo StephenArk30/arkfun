@@ -7,9 +7,6 @@
   "scripts": {
     "add-pkg": "node packages/pkg-cli/cli.cjs create"
   },
-  "dependencies": {
-    "@arkfun/pkg-cli": "^0.1.0-alpha.1"
-  },
   "devDependencies": {
     "@babel/core": "^7.23.5",
     "@babel/preset-env": "^7.23.5",

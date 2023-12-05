@@ -39,25 +39,26 @@ function createEntry(pkgPath, entryName, debug) {
   }
 }
 
-function createRollupConfig(pkgPath, useTs, entry, debug) {
+function createRollupConfig(pkgPath, entry, options, debug) {
   let configFile = fs.readFileSync(path.resolve(__dirname, '../templates/rollup.template.config.ts'), {
     encoding: 'utf-8',
   });
   configFile = configFile
-    .replace(/\$\{useTs}/g, useTs)
-    .replace(/\$\{input}/g, entry);
+    .replace(/\$\{input}/g, entry)
+    .replace(/\$\{options}/g, options);
   writeFileSync(path.resolve(pkgPath, 'rollup.config.ts'), configFile);
   if (debug) {
     console.log(`rollup.config.ts: \n${configFile}`);
   }
 }
 
-function createRollupDevConfig(pkgPath, entry, debug) {
+function createRollupDevConfig(pkgPath, entry, options, debug) {
   let configFile = fs.readFileSync(path.resolve(__dirname, '../templates/rollup.template.dev.config.ts'), {
     encoding: 'utf-8',
   });
   configFile = configFile
-    .replace(/\$\{input}/g, path.join('example', entry));
+    .replace(/\$\{input}/g, `example/${entry}`)
+    .replace(/\$\{options}/g, options);
   writeFileSync(path.resolve(pkgPath, 'rollup.dev.config.ts'), configFile);
   if (debug) {
     console.log(`rollup.dev.config.ts: \n${configFile}`);

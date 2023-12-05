@@ -3,10 +3,13 @@ import typescript from '@rollup/plugin-typescript';
 import { getBabelOutputPlugin } from '@rollup/plugin-babel';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 
-import serve from 'rollup-plugin-serve'
+import serve from 'rollup-plugin-serve';
 import html from '@rollup/plugin-html';
 
-export function getConfig(useTs, input, babelOptions = (options) => options) {
+export function getConfig(input, {
+  useTs,
+  babelOptions = (options) => options,
+} = {}) {
   const baseName = path.parse(input).name;
   return {
     input,
@@ -30,18 +33,20 @@ export function getConfig(useTs, input, babelOptions = (options) => options) {
   };
 }
 
-export function getDevConfig(input) {
+export function getDevConfig(input, {
+  htmlOptions,
+  ...options
+} = {}) {
+  const { plugins } = getConfig(input, options);
   return {
     input,
     output: {
-      dir: 'dist/example',
+      dir: 'dist',
     },
     plugins: [
-      nodeResolve({
-        extensions: ['.js', '.ts'],
-      }),
-      html(),
-      serve('dist/example'),
+      ...plugins,
+      html(htmlOptions),
+      serve('dist'),
     ],
   };
 }

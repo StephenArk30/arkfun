@@ -39,6 +39,7 @@ module.exports = {
       packageDir: ['.'],
     }],
     'no-continue': 'off',
+    indent: ['error', 2],
   },
   settings: {
     'import/resolver': {

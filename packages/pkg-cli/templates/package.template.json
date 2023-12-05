@@ -9,8 +9,8 @@
   },
   "homepage": "https://github.com/StephenArk30/arkfun/tree/master/packages/${name}#readme",
   "keywords": [],
-  "main": "dist/${name}.umd.js",
-  "module": "dist/${name}.esm.js",
+  "main": "dist/${name}.cjs",
+  "module": "dist/${name}.mjs",
   "directories": {
     "dist": "dist",
     "src": "src"
