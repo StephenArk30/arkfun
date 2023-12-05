@@ -17,17 +17,21 @@ export function getConfig(input, {
       nodeResolve({
         extensions: ['.js', '.ts'],
       }),
-      ...(useTs ? [typescript()] : []),
+      ...(useTs ? [typescript({
+        sourceMap: process.env.NODE_ENV !== 'production',
+      })] : []),
     ],
     output: [
       {
         file: `dist/${baseName}.cjs`,
         format: 'cjs',
         plugins: [getBabelOutputPlugin(babelOptions({ presets: ['@babel/preset-env'] }))],
+        sourcemap: process.env.NODE_ENV !== 'production',
       },
       {
         file: `dist/${baseName}.mjs`,
         format: 'es',
+        sourcemap: process.env.NODE_ENV !== 'production',
       },
     ],
   };
@@ -42,6 +46,7 @@ export function getDevConfig(input, {
     input,
     output: {
       dir: 'dist',
+      sourcemap: process.env.NODE_ENV !== 'production',
     },
     plugins: [
       ...plugins,
