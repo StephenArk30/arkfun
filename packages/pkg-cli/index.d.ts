@@ -7,4 +7,6 @@ declare function getConfig(
     input: string,
     babelOptions?: (options: IBabelOptions) => IBabelOptions): any;
 
-export { getConfig };
+declare function getDevConfig(input: string): any;
+
+export { getConfig, getDevConfig };

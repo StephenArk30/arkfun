@@ -25,6 +25,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "build": "cross-env NODE_ENV=production && rollup -c rollup.config.ts --configPlugin typescript",
+    "dev": "cross-env NODE_ENV=development && rollup -w -c rollup.dev.config.ts --configPlugin typescript",
     "prepublish": "yarn clean",
     "publish": "yarn build"
   }

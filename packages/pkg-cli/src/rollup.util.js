@@ -3,7 +3,10 @@ import typescript from '@rollup/plugin-typescript';
 import { getBabelOutputPlugin } from '@rollup/plugin-babel';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 
-export default function getConfig(useTs, input, babelOptions = (options) => options) {
+import serve from 'rollup-plugin-serve'
+import html from '@rollup/plugin-html';
+
+export function getConfig(useTs, input, babelOptions = (options) => options) {
   const baseName = path.parse(input).name;
   return {
     input,
@@ -23,6 +26,22 @@ export default function getConfig(useTs, input, babelOptions = (options) => opti
         file: `dist/${baseName}.mjs`,
         format: 'es',
       },
+    ],
+  };
+}
+
+export function getDevConfig(input) {
+  return {
+    input,
+    output: {
+      dir: 'dist/example',
+    },
+    plugins: [
+      nodeResolve({
+        extensions: ['.js', '.ts'],
+      }),
+      html(),
+      serve('dist/example'),
     ],
   };
 }

@@ -80,6 +80,7 @@ async function create() {
   }
   createUtil.createEntry(pkgPath, entry, debug);
   createUtil.createRollupConfig(pkgPath, useTs, entry, debug);
+  createUtil.createRollupDevConfig(pkgPath, path.basename(entry), debug);
   if (readme) {
     fileUtil.writeFileSync(path.resolve(pkgPath, 'README.md'), `# ${pkgName}`);
   }

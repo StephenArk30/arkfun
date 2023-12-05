@@ -29,8 +29,13 @@ function createTsConfig(pkgPath, debug) {
 
 function createEntry(pkgPath, entryName, debug) {
   writeFileSync(path.resolve(pkgPath, entryName), '');
+  const example = fs.readFileSync(path.resolve(__dirname, '../templates/example.template.ts'), {
+    encoding: 'utf-8',
+  });
+  writeFileSync(path.resolve(pkgPath, 'example', path.basename(entryName)), example);
   if (debug) {
     console.log(`${entryName} created`);
+    console.log(`${path.join('example', entryName)} created`);
   }
 }
 
@@ -47,9 +52,22 @@ function createRollupConfig(pkgPath, useTs, entry, debug) {
   }
 }
 
+function createRollupDevConfig(pkgPath, entry, debug) {
+  let configFile = fs.readFileSync(path.resolve(__dirname, '../templates/rollup.template.dev.config.ts'), {
+    encoding: 'utf-8',
+  });
+  configFile = configFile
+    .replace(/\$\{input}/g, path.join('example', entry));
+  writeFileSync(path.resolve(pkgPath, 'rollup.dev.config.ts'), configFile);
+  if (debug) {
+    console.log(`rollup.dev.config.ts: \n${configFile}`);
+  }
+}
+
 module.exports = {
   createPackageJson,
   createTsConfig,
   createEntry,
   createRollupConfig,
+  createRollupDevConfig,
 };
