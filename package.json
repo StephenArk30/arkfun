@@ -5,9 +5,11 @@
     "packages/*"
   ],
   "scripts": {
-    "add-pkg": "node packages/pkg-cli/cli.cjs create"
+    "add-pkg": "node packages/pkg-cli/cli.cjs create",
+    "lint": "eslint . --ext .ts,.js,.cjs"
   },
   "devDependencies": {
+    "@arkfun/pkg-cli": "*",
     "@babel/core": "^7.23.5",
     "@babel/preset-env": "^7.23.5",
     "@rollup/plugin-babel": "^6.0.3",

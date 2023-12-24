@@ -28,16 +28,16 @@ export const DirectionDelta = {
 
 export function opposite(direction: SnakeDirection) {
   switch (direction) {
-    case SnakeDirection.UP:
-      return SnakeDirection.DOWN;
-    case SnakeDirection.DOWN:
-      return SnakeDirection.UP;
-    case SnakeDirection.LEFT:
-      return SnakeDirection.RIGHT;
-    case SnakeDirection.RIGHT:
-      return SnakeDirection.LEFT;
-    default:
-      return direction;
+  case SnakeDirection.UP:
+    return SnakeDirection.DOWN;
+  case SnakeDirection.DOWN:
+    return SnakeDirection.UP;
+  case SnakeDirection.LEFT:
+    return SnakeDirection.RIGHT;
+  case SnakeDirection.RIGHT:
+    return SnakeDirection.LEFT;
+  default:
+    return direction;
   }
 }
 

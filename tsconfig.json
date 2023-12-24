@@ -17,7 +17,8 @@
     "skipLibCheck": true,
     "removeComments": true,
     "baseUrl": ".",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "allowJs": true
   },
   "exclude": [
     "node_modules"

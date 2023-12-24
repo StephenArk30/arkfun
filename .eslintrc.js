@@ -40,6 +40,7 @@ module.exports = {
     }],
     'no-continue': 'off',
     indent: ['error', 2],
+    'import/extensions': ['error', { js: 'never', ts: 'never' }],
   },
   settings: {
     'import/resolver': {

@@ -20,22 +20,22 @@ export function printMap({ map, snake }: SnakeObservation) {
     mapStr += `${i}\t`;
     for (let j = 0; j < map[i].length; j += 1) {
       switch (map[i][j]) {
-        case NodeType.Food:
-          mapStr += 'o';
-          break;
-        case NodeType.SnakeHead:
-          mapStr += HEAD_STR_MAP[snake.getDirection()];
-          break;
-        case NodeType.SnakeBody:
-          mapStr += '+';
-          break;
-        case NodeType.Barrier:
-          mapStr += '*';
-          break;
-        case NodeType.Empty:
-        default:
-          mapStr += ' ';
-          break;
+      case NodeType.Food:
+        mapStr += 'o';
+        break;
+      case NodeType.SnakeHead:
+        mapStr += HEAD_STR_MAP[snake.getDirection()];
+        break;
+      case NodeType.SnakeBody:
+        mapStr += '+';
+        break;
+      case NodeType.Barrier:
+        mapStr += '*';
+        break;
+      case NodeType.Empty:
+      default:
+        mapStr += ' ';
+        break;
       }
       mapStr += '\t';
     }
@@ -82,20 +82,20 @@ export function PlaySnakeGameHuman(
   let action = random.randRange(SnakeDirection.MIN, SnakeDirection.MAX);
   const keyboardListener = (event: KeyboardEvent) => {
     switch (event.key) {
-      case 'ArrowUp':
-        action = SnakeDirection.UP;
-        break;
-      case 'ArrowDown':
-        action = SnakeDirection.DOWN;
-        break;
-      case 'ArrowLeft':
-        action = SnakeDirection.LEFT;
-        break;
-      case 'ArrowRight':
-        action = SnakeDirection.RIGHT;
-        break;
-      default:
-        break;
+    case 'ArrowUp':
+      action = SnakeDirection.UP;
+      break;
+    case 'ArrowDown':
+      action = SnakeDirection.DOWN;
+      break;
+    case 'ArrowLeft':
+      action = SnakeDirection.LEFT;
+      break;
+    case 'ArrowRight':
+      action = SnakeDirection.RIGHT;
+      break;
+    default:
+      break;
     }
   };
   window.addEventListener('keydown', keyboardListener);
