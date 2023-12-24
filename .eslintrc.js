@@ -1,3 +1,5 @@
+const path = require('path');
+
 module.exports = {
   env: {
     browser: true,
@@ -36,7 +38,7 @@ module.exports = {
     'no-param-reassign': 'off',
     'no-loop-func': 'off',
     'import/no-extraneous-dependencies': ['error', {
-      packageDir: ['.'],
+      packageDir: [path.resolve(__dirname)],
     }],
     'no-continue': 'off',
     indent: ['error', 2],
