@@ -9,8 +9,8 @@
   },
   "homepage": "https://github.com/StephenArk30/arkfun/tree/master/packages/snakegame#readme",
   "keywords": [],
-  "main": "dist/snakegame.cjs",
-  "module": "dist/snakegame.mjs",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
   "directories": {
     "dist": "dist",
     "src": "src"
