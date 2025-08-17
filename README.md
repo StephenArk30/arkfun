@@ -1,1 +1,3 @@
 - add a new package: `yarn add-pkg [name]`, @arkfun/[name] will be created.
+- run package script: `lerna run <script-name> --scope <package-name>`
+- publish: `lerna publish major/minor/patch`
