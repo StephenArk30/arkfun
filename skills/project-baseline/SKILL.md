@@ -1,17 +1,27 @@
 ---
-name: project-startup
-description: Guide for bootstrapping a new software project with a disciplined engineering baseline from day one — typed language selection, the full test pyramid (unit / integration / e2e / smoke), coverage gates, linting, and a pre-commit quality gate (tests + coverage + build + lint + commitlint). Use this skill whenever the user wants to start a new project, scaffold a new repo, set up a new app or service, bootstrap a greenfield codebase, create a starter template, or "kick off" / "initialize" / "set up" / "scaffold" a project — even when they don't explicitly mention tests or quality gates. Also trigger when the user asks what a brand-new project should include, or how to set up a project the right way.
+name: project-baseline
+description: Guide for establishing a disciplined engineering baseline on a project — typed language selection, the full test pyramid (unit / integration / e2e / smoke), coverage gates, linting, and a pre-commit quality gate (tests + coverage + build + lint + commitlint). Use this skill whenever the user wants to set up or harden a project's technical foundation — scaffolding a new repo from scratch, bootstrapping a greenfield codebase, creating a starter template, "kicking off" / "initializing" / "scaffolding" a project, OR retrofitting an existing/legacy project that lacks these guardrails (adding tests, types, lint, coverage, hooks to a codebase that never had them). Also trigger when the user asks what a project should include, or how to set up a project the right way — whether new or retrofit. Even when they don't explicitly mention tests or quality gates.
 ---
 
-# Project Startup
+# Project Baseline
 
-This skill walks you through bootstrapping a new project with a disciplined engineering baseline from the very first commit. The goal isn't just "get something running" — it's to lay down the guardrails that keep a project healthy as it grows: a strongly-typed language, a real test pyramid, a coverage floor, linting, and pre-commit checks that stop broken or low-quality code from ever landing.
+This skill walks you through establishing a disciplined engineering baseline — whether on a brand-new project from the very first commit, or by retrofitting one onto an existing/legacy codebase that never had one. The goal isn't just "get something running" — it's to lay down the guardrails that keep a project healthy as it grows: a strongly-typed language, a real test pyramid, a coverage floor, linting, and pre-commit checks that stop broken or low-quality code from ever landing.
 
-A project started without these guardrails almost always pays for it later — tests get retrofitted painfully, types get loosened to "make it compile", and the pre-commit hook becomes a folklore ritual nobody trusts. Doing it upfront is dramatically cheaper. That's the whole premise of this skill.
+A project started without these guardrails almost always pays for it later — tests get retrofitted painfully, types get loosened to "make it compile", and the pre-commit hook becomes a folklore ritual nobody trusts. Doing it upfront is dramatically cheaper — but so is paying down that debt on an existing project before it compounds further. The stages below apply equally to greenfield scaffolding and to legacy retrofit; the difference is mostly pacing and risk, not the destination.
 
 ## How to use this skill
 
 Run the stages roughly in order, but adapt to the user's context. Not every project needs e2e tests on day one; not every project needs a monorepo. Ask when the choice is consequential and irreversible, and make a sensible default-driven decision when it isn't. Don't block on approval for routine scaffolding — state your assumption and proceed.
+
+**Greenfield vs. legacy retrofit.** These stages were originally written for a new project, but they apply just as well to retrofitting a baseline onto an existing/legacy codebase. The difference is how you traverse them:
+
+- On a **new project**, run the stages in order and build the baseline before any feature code lands.
+- On a **legacy project**, don't blow through the stages top-to-bottom. First audit what's already there against the final checklist at the bottom of this file — what guardrails exist, what's missing, what's present but weak. Then triage: pick the gaps that deliver the most risk reduction for the least disruption, and land them incrementally. A few legacy-specific notes worth keeping in mind:
+  - **Types first, then tests, then coverage.** Adding types to an untyped codebase is often the highest-leverage first step because it makes every subsequent change safer (including the test additions). Tests on untyped code are slower to write and more brittle; types make them cheaper.
+  - **Don't try to retrofit the whole pyramid at once.** Start with unit tests around the riskiest / most-changed modules; add integration and e2e incrementally. A coverage gate that suddenly fails the build on a legacy codebase at 12% coverage will just get disabled within a week — ratchet the floor up from the current level rather than jumping straight to 80%.
+  - **Linting on legacy is a triage exercise.** A strict linter turned on for the first time can produce hundreds of errors. Land the config, but start the new rules as `warn` or scoped to new/changed files (e.g. lint-staged on touched files only), then promote to `error` and project-wide as the backlog clears. The goal is a green lint baseline the team trusts, not a wall of errors everyone learns to ignore.
+  - **Hooks and CI come last, not first.** Only wire the pre-commit/CI gates once the checks they run are actually passing — otherwise the team will bypass the hooks within a day and the baseline is worse than nothing (a gate nobody respects). Stage 7 (locking down the AI agent's own permissions) is still applicable and valuable on legacy from the start.
+  - **Irreversible stack decisions are mostly already made on legacy.** Skip Stage 0's "pick the tech stack" unless the retrofit explicitly includes a stack migration; focus on the guardrails around the existing stack instead.
 
 Throughout, point the user at the reference notes that match their project type:
 
