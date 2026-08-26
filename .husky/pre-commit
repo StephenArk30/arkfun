@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+# 提交前强制校验：所有测试必须通过，且覆盖率必须达到 100%。
+# 覆盖率范围与排除项见根目录 jest.config.js。
+yarn test:coverage || {
+  echo ""
+  echo "❌ 提交被拦截：测试失败或覆盖率未达到 100%。"
+  echo "   运行 yarn test:coverage 查看详情；确认无需提交后可用 git commit --no-verify 跳过。"
+  exit 1
+}
