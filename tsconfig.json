@@ -8,7 +8,6 @@
     "experimentalDecorators": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "sourceMap": true,
     "target": "es2015",
     "strict": false,
     "noImplicitAny": true,
