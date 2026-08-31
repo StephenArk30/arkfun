@@ -188,4 +188,28 @@ describe('SnakeGameEnv', () => {
     expect(res.done).toBe(true);
     expect(logSpy).toHaveBeenCalledWith('game over!', 1);
   });
+
+  it('wins when the snake fills all free cells instead of hanging', () => {
+    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    // 3x1 地图：蛇头 (0,0)，食物 (1,0) → 吃后新食物 (2,0) → 再吃占满全场，胜利
+    mockRandRange(0, 0, 1, 0, 2, 0);
+    const env = new SnakeGameEnv(appendCanvas(), {
+      col: 3,
+      row: 1,
+      direction: SnakeDirection.RIGHT,
+    });
+
+    let res = env.step(SnakeDirection.RIGHT);
+    expect(res.reward).toBe(1);
+    expect(res.done).toBe(false);
+    expect(env.snake.length).toBe(2);
+    expect(env.food.toArray()).toEqual([2, 0]);
+
+    // 吃下最后一个食物后没有空格放新食物，应直接胜利而不是死循环
+    res = env.step(SnakeDirection.RIGHT);
+    expect(res.reward).toBe(1);
+    expect(res.done).toBe(true);
+    expect(env.snake.length).toBe(3);
+    expect(logSpy).toHaveBeenCalledWith('you win!', 2);
+  });
 });

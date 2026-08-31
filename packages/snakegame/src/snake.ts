@@ -64,8 +64,8 @@ export default class Snake {
     if (config.snakeLen) {
       for (let i = 1; i < config.snakeLen; i += 1) {
         this.nodes.push(new MapNode(
-          this.head.col - DirectionDelta[this.direction].col,
-          this.head.row - DirectionDelta[this.direction].row,
+          this.head.col - DirectionDelta[this.direction].col * i,
+          this.head.row - DirectionDelta[this.direction].row * i,
         ));
       }
     }

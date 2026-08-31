@@ -188,6 +188,10 @@ export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> 
     console.log('game over!', this.score);
   }
 
+  protected gameWin() {
+    console.log('you win!', this.score);
+  }
+
   protected moveSnake(direction: SnakeDirection) {
     let { head } = this.snake;
     this.map[head.row][head.col] = this.snake.length === 1 ? NodeType.Empty : NodeType.SnakeBody;
@@ -209,7 +213,12 @@ export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> 
     this.map[this.snake.head.row][this.snake.head.col] = NodeType.SnakeBody;
     this.map[this.food.row][this.food.col] = NodeType.SnakeHead;
     this.snake.eat(direction, this.food);
-    this.genFood();
+  }
+
+  // 蛇占满所有可用格子时,没有空位再放食物,即达成胜利
+  protected isWin() {
+    return this.snake.length
+      >= (this.config.col as number) * (this.config.row as number) - this.barriers.length;
   }
 
   step(action: SnakeDirection) {
@@ -223,10 +232,16 @@ export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> 
     if (head.equals(this.food)) {
       this.eatFood(action);
       reward += 1;
+      this.score += reward;
+      if (this.isWin()) {
+        this.gameWin();
+        done = true;
+      } else {
+        this.genFood();
+      }
     } else {
       done = this.moveSnake(action);
     }
-    this.score += reward;
     return {
       reward,
       done,

@@ -24,5 +24,5 @@ it('clears with the background color', () => {
   const food = new Food(new MapNode(2, 3), ctx, 10, '#fff', '#000');
   food.clear();
   expect(ctx.fillStyle).toBe('#000');
-  expect(ctx.fillRect).toHaveBeenCalledWith(2, 3, 20, 20);
+  expect(ctx.fillRect).toHaveBeenCalledWith(40, 60, 20, 20);
 });

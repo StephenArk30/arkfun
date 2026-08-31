@@ -47,6 +47,12 @@ describe('random', () => {
     jest.spyOn(Math, 'random').mockReturnValue(0.5);
     expect(random.randRange(5)).toBe(3);
   });
+
+  it('randRange handles a zero upper bound without infinite recursion', () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0.5);
+    expect(random.randRange(0)).toBe(0);
+    expect(random.randRange(0, 0)).toBe(0);
+  });
 });
 
 it('default export exposes MapNode and util.random', () => {

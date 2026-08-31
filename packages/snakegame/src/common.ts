@@ -21,9 +21,10 @@ export class MapNode {
 export const random = {
   choice: (arr: any[]) => arr[Math.floor(Math.random() * arr.length)],
   randRange(min: number, max?: number): number {
-    return max ? Math.floor(
+    if (max === undefined) return random.randRange(0, min);
+    return Math.floor(
       Math.random() * (Math.floor(max) - Math.ceil(min) + 1),
-    ) + Math.ceil(min) : random.randRange(0, min);
+    ) + Math.ceil(min);
   },
 };
 

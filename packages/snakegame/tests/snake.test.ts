@@ -39,9 +39,9 @@ describe('Snake', () => {
     const snake = makeSnake({ direction: SnakeDirection.RIGHT, snakeLen: 3 });
     expect(snake.getDirection()).toBe(SnakeDirection.RIGHT);
     expect(snake.length).toBe(3);
-    expect(snake.nodes.map((node) => node.toArray())).toEqual([[5, 5], [4, 5], [4, 5]]);
+    expect(snake.nodes.map((node) => node.toArray())).toEqual([[5, 5], [4, 5], [3, 5]]);
     expect(snake.head.toArray()).toEqual([5, 5]);
-    expect(snake.tail.toArray()).toEqual([4, 5]);
+    expect(snake.tail.toArray()).toEqual([3, 5]);
   });
 
   it('falls back to a random direction when direction is missing or invalid', () => {

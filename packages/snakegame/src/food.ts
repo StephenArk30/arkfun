@@ -27,6 +27,11 @@ export default class Food extends MapNode {
 
   clear() {
     this.ctx.fillStyle = this.bgColor;
-    this.ctx.fillRect(this.col, this.row, this.radius * 2, this.radius * 2);
+    this.ctx.fillRect(
+      this.col * this.radius * 2,
+      this.row * this.radius * 2,
+      this.radius * 2,
+      this.radius * 2,
+    );
   }
 }
