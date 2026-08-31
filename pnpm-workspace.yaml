@@ -1,0 +1,10 @@
+packages:
+  - packages/*
+
+# 构建脚本均无需执行：
+# - @parcel/watcher / unrs-resolver：darwin-arm64 预编译二进制已通过平台包安装，postinstall 仅为兜底编译
+# - nx：postinstall 仅为环境检查（lerna 的间接依赖）
+allowBuilds:
+  '@parcel/watcher': false
+  nx: false
+  unrs-resolver: false

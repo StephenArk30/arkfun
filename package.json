@@ -1,9 +1,10 @@
 {
   "name": "root",
   "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
+  "packageManager": "pnpm@11.24.0",
+  "engines": {
+    "node": ">=22.13"
+  },
   "scripts": {
     "add-pkg": "node packages/pkg-cli/cli.cjs create",
     "lint": "eslint . --ext .ts,.js,.cjs",
@@ -12,7 +13,7 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "@arkfun/pkg-cli": "*",
+    "@arkfun/pkg-cli": "workspace:*",
     "@babel/core": "^7.23.5",
     "@babel/preset-env": "^7.23.5",
     "@rollup/plugin-babel": "^6.0.3",
