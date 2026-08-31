@@ -46,7 +46,9 @@ describe('SnakeGameEnv', () => {
     const env = new SnakeGameEnv(canvas, { col: 5, row: 5 });
     expect(env.canvas).toBe(canvas);
     expect((env as any).config.snakeColor).toBe('#fff');
+    expect((env as any).config.foodColor).toBe('#ff0');
     expect((env as any).config.bgColor).toBe('#000');
+    expect((env as any).config.barrierColor).toBe('#888');
     expect(env.gridA).toBe(20);
     expect(env.score).toBe(0);
     expect(env.map).toHaveLength(5);

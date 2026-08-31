@@ -1,3 +1,3 @@
 import { PlaySnakeGame } from '../src/index';
 
-PlaySnakeGame();
+PlaySnakeGame(undefined, { barriers: [1, 4] });

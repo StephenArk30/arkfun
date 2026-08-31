@@ -176,7 +176,7 @@ describe('printMap', () => {
         gridA: 1,
         direction,
       });
-      printMap({ map, snake, food: new MapNode(0, 0) });
+      printMap({ map, snake, food: new MapNode(0, 0), barriers: [] });
     });
 
     expect(console.log).toHaveBeenCalledWith(expect.stringContaining('o'));

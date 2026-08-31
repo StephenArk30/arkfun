@@ -26,7 +26,7 @@ const buildObs = (
     gridA: 1,
     direction,
   });
-  return { map, snake, food: new MapNode(food[0], food[1]) };
+  return { map, snake, food: new MapNode(food[0], food[1]), barriers: [] as MapNode[] };
 };
 
 describe('aStar', () => {

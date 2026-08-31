@@ -94,6 +94,7 @@ export default class Snake {
 
   draw() {
     this.ctx.fillStyle = this.color;
+    this.ctx.beginPath();
     this.nodes.forEach((node) => {
       this.ctx.rect(
         node.col * this.gridA,

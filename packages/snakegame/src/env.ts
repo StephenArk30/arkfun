@@ -7,21 +7,30 @@ export type SnakeObservation = {
   map: NodeType[][];
   snake: Snake;
   food: MapNode;
+  barriers: MapNode[];
 };
+
+// 障碍物数量：固定数量，或 [min, max] 区间内随机（含边界，min > max 时自动交换）
+export type BarrierCount = number | [number, number];
 
 export type SnakeGameConfig = {
   col: number,
   row: number,
   snakeColor?: string,
+  foodColor?: string,
   bgColor?: string,
   direction?: SnakeDirection,
+  barriers?: BarrierCount,
+  barrierColor?: string,
 }
 
 const defaultConfig: SnakeGameConfig = {
   col: 10,
   row: 10,
   snakeColor: '#fff',
+  foodColor: '#ff0',
   bgColor: '#000',
+  barrierColor: '#888',
 };
 
 export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> {
@@ -30,6 +39,7 @@ export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> 
   protected config: SnakeGameConfig;
   snake: Snake = null;
   food: Food = null;
+  barriers: MapNode[] = [];
   gridA: number = 0;
   score: number = 0;
   map: NodeType[][] = null;
@@ -59,11 +69,11 @@ export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> 
   randomNode() {
     let col = random.randRange(this.config.col as number - 1);
     let row = random.randRange(this.config.row as number - 1);
-    if (this.snake) {
-      while (this.snake.includes(new MapNode(col, row))) {
-        col = random.randRange(this.config.col as number - 1);
-        row = random.randRange(this.config.row as number - 1);
-      }
+    // genSnake 生成新蛇前地图为全空，此时仍需避让上一局的旧蛇
+    while ((this.snake != null && this.snake.includes(new MapNode(col, row)))
+      || this.map[row][col] !== NodeType.Empty) {
+      col = random.randRange(this.config.col as number - 1);
+      row = random.randRange(this.config.row as number - 1);
     }
     return new MapNode(col, row);
   }
@@ -97,10 +107,35 @@ export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> 
       this.randomNode(),
       this.ctx,
       this.gridA / 2,
-      this.config.snakeColor as string,
+      this.config.foodColor as string,
       this.config.bgColor as string,
     );
     this.map[this.food.row][this.food.col] = NodeType.Food;
+  }
+
+  protected genBarriers() {
+    this.barriers = [];
+    const { barriers } = this.config;
+    if (barriers == null) return;
+
+    let count: number;
+    if (Array.isArray(barriers)) {
+      const min = Math.min(barriers[0], barriers[1]);
+      const max = Math.max(barriers[0], barriers[1]);
+      count = random.randRange(min, max);
+    } else {
+      count = barriers;
+    }
+
+    // 为食物至少保留一个空格
+    const maxCount = this.config.col * this.config.row - this.snake.length - 1;
+    count = Math.min(Math.max(count, 0), maxCount);
+
+    for (let i = 0; i < count; i += 1) {
+      const node = this.randomNode();
+      this.barriers.push(node);
+      this.map[node.row][node.col] = NodeType.Barrier;
+    }
   }
   //#endregion
 
@@ -109,12 +144,14 @@ export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> 
       map: this.map,
       snake: this.snake,
       food: this.food,
+      barriers: this.barriers,
     };
   }
 
   reset() {
     this.genMap();
     this.genSnake();
+    this.genBarriers();
     this.genFood();
     this.score = 0;
     return { observation: this.getObservation() };
@@ -128,7 +165,23 @@ export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> 
   render() {
     this.fillCanvas();
     this.food.draw();
+    this.drawBarriers();
     this.snake.draw();
+  }
+
+  protected drawBarriers() {
+    if (this.barriers.length === 0) return;
+    this.ctx.fillStyle = this.config.barrierColor as string;
+    this.ctx.beginPath();
+    this.barriers.forEach((node) => {
+      this.ctx.rect(
+        node.col * this.gridA,
+        node.row * this.gridA,
+        this.gridA,
+        this.gridA,
+      );
+    });
+    this.ctx.fill();
   }
 
   protected gameOver() {
@@ -143,6 +196,7 @@ export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> 
     head = this.snake.move(direction);
     if (head.col < 0 || head.row < 0
       || head.col >= this.config.col || head.row >= this.config.row
+      || this.map[head.row][head.col] === NodeType.Barrier
       || this.snake.nodes.some((node, index) => index !== 0 && node.equals(head))) {
       this.gameOver();
       return true;
