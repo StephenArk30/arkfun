@@ -20,7 +20,7 @@ export interface SnakeConfig {
   rng?: RNG; // direction 缺省时的随机来源，传入以保证 reset(seed) 可复现
 }
 
-export const DirectionDelta = {
+export const DirectionDelta: Record<SnakeDirection, MapNode> = {
   // [Direction]: [deltaCol, deltaRow]
   [SnakeDirection.UP]: new MapNode(0, -1),
   [SnakeDirection.DOWN]: new MapNode(0, 1),
@@ -38,6 +38,34 @@ export function opposite(direction: SnakeDirection) {
     return SnakeDirection.RIGHT;
   case SnakeDirection.RIGHT:
     return SnakeDirection.LEFT;
+  default:
+    return direction;
+  }
+}
+
+// 相对动作：以蛇当前朝向为基准的转向（relative 模式下不存在非法动作）
+export enum SnakeRelativeAction {
+  TurnLeft,
+  Forward,
+  TurnRight,
+}
+
+// 相对动作 → 绝对方向。左转为逆时针：UP→LEFT→DOWN→RIGHT→UP
+export function relativeToAbsolute(
+  direction: SnakeDirection,
+  action: SnakeRelativeAction,
+): SnakeDirection {
+  if (action === SnakeRelativeAction.Forward) return direction;
+  const turnLeft = action === SnakeRelativeAction.TurnLeft;
+  switch (direction) {
+  case SnakeDirection.UP:
+    return turnLeft ? SnakeDirection.LEFT : SnakeDirection.RIGHT;
+  case SnakeDirection.DOWN:
+    return turnLeft ? SnakeDirection.RIGHT : SnakeDirection.LEFT;
+  case SnakeDirection.LEFT:
+    return turnLeft ? SnakeDirection.DOWN : SnakeDirection.UP;
+  case SnakeDirection.RIGHT:
+    return turnLeft ? SnakeDirection.UP : SnakeDirection.DOWN;
   default:
     return direction;
   }

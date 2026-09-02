@@ -1,7 +1,7 @@
-import SnakeGameEnv from '../src/env';
+import SnakeGameEnv, { SnakeObservation } from '../src/env';
 import Snake, { SnakeDirection } from '../src/snake';
 import { MapNode, NodeType } from '../src/common';
-import { appendCanvas, createMockContext, mockRandRange } from './helpers';
+import { appendCanvas, cell, createMockContext, mockRandRange } from './helpers';
 
 // 手工摆放蛇与地图，直接调用 protected 方法测 moveSnake 的各种碰撞
 const placeSnake = (
@@ -18,12 +18,9 @@ const placeSnake = (
   });
   nodes.slice(1).forEach(([col, row]) => snake.nodes.push(new MapNode(col, row)));
   (env as any).snake = snake;
-  const map: NodeType[][] = Array.from(
-    { length: 5 },
-    () => Array.from({ length: 5 }, () => NodeType.Empty),
-  );
+  const map = new Uint8Array(5 * 5);
   nodes.forEach(([col, row], index) => {
-    map[row][col] = index === 0 ? NodeType.SnakeHead : NodeType.SnakeBody;
+    map[row * 5 + col] = index === 0 ? NodeType.SnakeHead : NodeType.SnakeBody;
   });
   (env as any).map = map;
   return snake;
@@ -51,8 +48,7 @@ describe('SnakeGameEnv', () => {
     expect((env as any).config.barrierColor).toBe('#888');
     expect(env.gridA).toBe(20);
     expect(env.score).toBe(0);
-    expect(env.map).toHaveLength(5);
-    expect(env.map[0]).toHaveLength(5);
+    expect(env.map).toHaveLength(25);
     expect(env.snake).toBeInstanceOf(Snake);
     expect(env.food).toBeInstanceOf(MapNode);
   });
@@ -100,7 +96,7 @@ describe('SnakeGameEnv', () => {
   it('reset regenerates the game state', () => {
     const env = new SnakeGameEnv(appendCanvas(), { col: 5, row: 5 });
     env.score = 3;
-    const { observation } = env.reset();
+    const { observation } = env.reset() as { observation: SnakeObservation };
     expect(env.score).toBe(0);
     expect(observation.map).toBe(env.map);
     expect(observation.snake).toBe(env.snake);
@@ -149,7 +145,7 @@ describe('SnakeGameEnv', () => {
     const snake = placeSnake(env, [[2, 2], [2, 3]], SnakeDirection.LEFT);
     expect((env as any).moveSnake(SnakeDirection.LEFT)).toBe(false);
     expect(snake.head.toArray()).toEqual([1, 2]);
-    expect(env.map[2][1]).toBe(NodeType.SnakeHead);
+    expect(cell(env.map, 2, 1, 5)).toBe(NodeType.SnakeHead);
   });
 
   it('step eats food, ignores opposite actions and ends on a wall', () => {
@@ -170,14 +166,14 @@ describe('SnakeGameEnv', () => {
     expect(env.snake.length).toBe(2);
     expect(env.snake.head.toArray()).toEqual([3, 2]);
     expect(env.food.toArray()).toEqual([1, 1]);
-    expect(env.map[2][3]).toBe(NodeType.SnakeHead);
+    expect(cell(env.map, 2, 3, 5)).toBe(NodeType.SnakeHead);
 
     // 普通移动（长度 >= 2，蛇头原位置记为 SnakeBody）
     res = env.step(SnakeDirection.UP);
     expect(res.reward).toBe(0);
     expect(res.done).toBe(false);
     expect(env.snake.head.toArray()).toEqual([3, 1]);
-    expect(env.map[2][3]).toBe(NodeType.SnakeBody);
+    expect(cell(env.map, 2, 3, 5)).toBe(NodeType.SnakeBody);
 
     // 反向输入被忽略，仍按当前方向前进
     res = env.step(SnakeDirection.DOWN);

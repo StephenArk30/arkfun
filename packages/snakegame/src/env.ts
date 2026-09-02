@@ -1,17 +1,35 @@
-import Snake, { opposite, SnakeDirection } from './snake';
+import Snake, {
+  DirectionDelta, opposite, relativeToAbsolute, SnakeDirection, SnakeRelativeAction,
+} from './snake';
 import { createRNG, MapNode, NodeType, random, RNG } from './common';
 import Food from './food';
+import {
+  buildRayObservation,
+  buildWindowObservation,
+  RayObservation,
+  WindowObservation,
+} from './observation';
 import { Env } from './types';
 
+// 'full' 模式观察：完整地图 + 实体引用。map 为行优先展平的 Uint8Array，
+// 索引 = row * col + col（NodeType 值 0-4，Empty = 0 即零填充）
 export type SnakeObservation = {
-  map: NodeType[][];
+  type: 'full';
+  map: Uint8Array;
+  col: number;
+  row: number;
   snake: Snake;
   food: MapNode;
   barriers: MapNode[];
 };
 
+export type SnakeAnyObservation = SnakeObservation | WindowObservation | RayObservation;
+
 // 障碍物数量：固定数量，或 [min, max] 区间内随机（含边界，min > max 时自动交换）
 export type BarrierCount = number | [number, number];
+
+// 初始蛇长：固定值，或 [min, max] 区间内随机；上限 min(col, row)
+export type SnakeLenCount = number | [number, number];
 
 export type SnakeGameConfig = {
   col: number,
@@ -33,6 +51,20 @@ export type SnakeGameConfig = {
   winReward?: number,
   // 每局最大步数，达到后截断（truncated = true）；0 表示不限制
   maxSteps?: number,
+  // 动作空间：'absolute'（默认，4 绝对方向）| 'relative'（左转/直行/右转，
+  // 不存在非法动作，天然与绝对朝向解耦，利于跨尺寸泛化）
+  actionMode?: 'absolute' | 'relative',
+  // absolute 模式下反向输入的处理：'ignore'（默认，静默替换为当前方向）|
+  // 'penalty'（替换之外额外加 illegalReward）
+  illegalAction?: 'ignore' | 'penalty',
+  illegalReward?: number,
+  // 初始蛇长：固定值或 [min, max] 随机；缺省 1
+  snakeLen?: SnakeLenCount,
+  // 观察编码：'full'（默认，完整地图）| 'window'（局部窗口+全局标量）|
+  // 'ray'（8 向射线+全局标量）。后两者输出形状与地图尺寸无关
+  observationType?: 'full' | 'window' | 'ray',
+  // window 模式边长（奇数，偶数自动 +1），默认 15
+  windowSize?: number,
 }
 
 const defaultConfig: SnakeGameConfig = {
@@ -48,9 +80,18 @@ const defaultConfig: SnakeGameConfig = {
   deathReward: 0,
   winReward: 0,
   maxSteps: 0,
+  actionMode: 'absolute',
+  illegalAction: 'ignore',
+  illegalReward: -0.1,
+  observationType: 'full',
+  windowSize: 15,
 };
 
-export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> {
+export class SnakeGameEnv implements Env<
+  SnakeDirection | SnakeRelativeAction,
+  SnakeAnyObservation,
+  void
+> {
   // 无头模式（canvas 传 null）下 canvas/ctx 为 null，游戏逻辑完全不依赖 DOM
   canvas: HTMLCanvasElement | null;
   ctx: CanvasRenderingContext2D | null;
@@ -63,7 +104,7 @@ export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> 
   gridA: number = 0;
   score: number = 0;
   steps: number = 0;
-  map: NodeType[][] = null;
+  map: Uint8Array = null;
 
   constructor(
     canvas: string | HTMLCanvasElement | null = 'snake_container',
@@ -96,37 +137,63 @@ export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> 
   }
 
   randomNode() {
-    let col = this.rng.randRange(this.config.col as number - 1);
-    let row = this.rng.randRange(this.config.row as number - 1);
-    while (this.map[row][col] !== NodeType.Empty) {
-      col = this.rng.randRange(this.config.col as number - 1);
-      row = this.rng.randRange(this.config.row as number - 1);
+    const width = this.config.col;
+    const height = this.config.row;
+    let col = this.rng.randRange(width - 1);
+    let row = this.rng.randRange(height - 1);
+    while (this.map[row * width + col] !== NodeType.Empty) {
+      col = this.rng.randRange(width - 1);
+      row = this.rng.randRange(height - 1);
     }
     return new MapNode(col, row);
   }
 
   //#region Generate
   protected genMap() {
-    this.map = Array.from({ length: this.config.row }).map(() => {
-      const row = Array.from({ length: this.config.col });
-      for (let col = 0; col < this.config.col; col += 1) row[col] = NodeType.Empty;
-      return row as NodeType[];
-    });
+    // Empty = 0，零填充即全空地图
+    this.map = new Uint8Array(this.config.col * this.config.row);
   }
 
   protected genSnake() {
+    const { col, row, snakeLen } = this.config;
+    let len = Array.isArray(snakeLen)
+      ? this.rng.randRange(
+        Math.min(snakeLen[0], snakeLen[1]),
+        Math.max(snakeLen[0], snakeLen[1]),
+      )
+      : snakeLen ?? 1;
+    // 蛇身沿运动反方向直线排布，最长不超过地图短边
+    len = Math.min(Math.max(len, 1), Math.min(col, row));
+
+    const direction: SnakeDirection = typeof this.config.direction === 'number'
+      && this.config.direction >= SnakeDirection.MIN
+      && this.config.direction <= SnakeDirection.MAX
+      ? this.config.direction
+      : this.rng.randRange(SnakeDirection.MIN, SnakeDirection.MAX) as SnakeDirection;
+
+    // 蛇身节点 i 位于 head - delta * i。直接计算合法的头部取值区间，
+    // 保证整条蛇落在界内（genSnake 时地图全空，无需检查占用）
+    const { col: dCol, row: dRow } = DirectionDelta[direction];
+    const extent = len - 1;
+    const col0 = dCol > 0 ? dCol * extent : 0;
+    const col1 = dCol < 0 ? col - 1 + dCol * extent : col - 1;
+    const row0 = dRow > 0 ? dRow * extent : 0;
+    const row1 = dRow < 0 ? row - 1 + dRow * extent : row - 1;
+    const head = new MapNode(this.rng.randRange(col0, col1), this.rng.randRange(row0, row1));
+
     this.snake = new Snake({
-      head: this.randomNode(),
+      head,
       ctx: this.ctx,
       color: this.config.snakeColor as string,
-      direction: this.config.direction,
+      direction,
+      snakeLen: len,
       gridA: this.gridA,
       rng: this.rng,
     });
     this.snake.nodes.forEach((node, index) => {
-      let type = NodeType.SnakeBody;
-      if (index === 0) type = NodeType.SnakeHead;
-      this.map[node.row][node.col] = type;
+      this.map[node.row * col + node.col] = index === 0
+        ? NodeType.SnakeHead
+        : NodeType.SnakeBody;
     });
   }
 
@@ -138,7 +205,7 @@ export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> 
       this.config.foodColor as string,
       this.config.bgColor as string,
     );
-    this.map[this.food.row][this.food.col] = NodeType.Food;
+    this.map[this.food.row * this.config.col + this.food.col] = NodeType.Food;
   }
 
   protected genBarriers() {
@@ -162,14 +229,33 @@ export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> 
     for (let i = 0; i < count; i += 1) {
       const node = this.randomNode();
       this.barriers.push(node);
-      this.map[node.row][node.col] = NodeType.Barrier;
+      this.map[node.row * this.config.col + node.col] = NodeType.Barrier;
     }
   }
   //#endregion
 
-  protected getObservation() {
+  protected getObservation(): SnakeAnyObservation {
+    const { observationType } = this.config;
+    if (observationType === 'window' || observationType === 'ray') {
+      const inputs = {
+        col: this.config.col,
+        row: this.config.row,
+        head: this.snake.head,
+        food: this.food,
+        direction: this.snake.getDirection(),
+        snakeLen: this.snake.length,
+        barrierCount: this.barriers.length,
+        map: this.map,
+      };
+      return observationType === 'window'
+        ? buildWindowObservation({ ...inputs, windowSize: this.config.windowSize })
+        : buildRayObservation(inputs);
+    }
     return {
+      type: 'full',
       map: this.map,
+      col: this.config.col,
+      row: this.config.row,
       snake: this.snake,
       food: this.food,
       barriers: this.barriers,
@@ -225,45 +311,64 @@ export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> 
   }
 
   protected moveSnake(direction: SnakeDirection) {
+    const width = this.config.col;
     let { head } = this.snake;
-    this.map[head.row][head.col] = this.snake.length === 1 ? NodeType.Empty : NodeType.SnakeBody;
+    this.map[head.row * width + head.col] = this.snake.length === 1
+      ? NodeType.Empty
+      : NodeType.SnakeBody;
     const { tail } = this.snake;
-    this.map[tail.row][tail.col] = NodeType.Empty;
+    this.map[tail.row * width + tail.col] = NodeType.Empty;
     head = this.snake.move(direction);
+    // map 查表判定碰撞：蛇头原格已改为 SnakeBody、蛇尾已清空，
+    // 因此非 Empty 即墙外/障碍/蛇身（追尾合法）；O(1) 而非 O(蛇长)
     if (head.col < 0 || head.row < 0
       || head.col >= this.config.col || head.row >= this.config.row
-      || this.map[head.row][head.col] === NodeType.Barrier
-      || this.snake.nodes.some((node, index) => index !== 0 && node.equals(head))) {
+      || this.map[head.row * width + head.col] !== NodeType.Empty) {
       this.gameOver();
       return true;
     }
-    this.map[head.row][head.col] = NodeType.SnakeHead;
+    this.map[head.row * width + head.col] = NodeType.SnakeHead;
     return false;
   }
 
   protected eatFood(direction: SnakeDirection) {
-    this.map[this.snake.head.row][this.snake.head.col] = NodeType.SnakeBody;
-    this.map[this.food.row][this.food.col] = NodeType.SnakeHead;
+    const width = this.config.col;
+    this.map[this.snake.head.row * width + this.snake.head.col] = NodeType.SnakeBody;
+    this.map[this.food.row * width + this.food.col] = NodeType.SnakeHead;
     this.snake.eat(direction, this.food);
   }
 
   // 蛇占满所有可用格子时,没有空位再放食物,即达成胜利
   protected isWin() {
     return this.snake.length
-      >= (this.config.col as number) * (this.config.row as number) - this.barriers.length;
+      >= this.config.col * this.config.row - this.barriers.length;
   }
 
-  step(action: SnakeDirection) {
-    if (action === opposite(this.snake.getDirection())) {
-      action = this.snake.getDirection();
+  step(action: SnakeDirection | SnakeRelativeAction) {
+    let illegal = false;
+    let direction: SnakeDirection;
+    if (this.config.actionMode === 'relative') {
+      direction = relativeToAbsolute(
+        this.snake.getDirection(),
+        action as SnakeRelativeAction,
+      );
+    } else {
+      direction = action as SnakeDirection;
+      if (direction === opposite(this.snake.getDirection())) {
+        illegal = true;
+        direction = this.snake.getDirection();
+      }
     }
 
     let reward = this.config.stepReward as number;
+    if (illegal && this.config.illegalAction === 'penalty') {
+      reward += this.config.illegalReward as number;
+    }
     let terminated = false;
     let truncated = false;
-    const head = this.snake.moveHead(action);
+    const head = this.snake.moveHead(direction);
     if (head.equals(this.food)) {
-      this.eatFood(action);
+      this.eatFood(direction);
       reward += this.config.foodReward as number;
       this.score += this.config.foodReward as number;
       if (this.isWin()) {
@@ -273,7 +378,7 @@ export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> 
       } else {
         this.genFood();
       }
-    } else if (this.moveSnake(action)) {
+    } else if (this.moveSnake(direction)) {
       reward += this.config.deathReward as number;
       this.gameOver();
       terminated = true;

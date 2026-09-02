@@ -1,7 +1,7 @@
 import SnakeGameEnv from '../src/env';
 import { NodeType } from '../src/common';
 import { SnakeDirection } from '../src/snake';
-import { appendCanvas, mockRandRange } from './helpers';
+import { appendCanvas, cell, mockRandRange } from './helpers';
 
 // genSnake 从不传 snakeLen，蛇初始长度恒为 1，因此「index === 0」为 false 的
 // 分支（标记 SnakeBody）无法通过公开 API 触发。这里 mock Snake 使其默认带
@@ -28,7 +28,7 @@ it('genSnake marks the head and body nodes on the map', () => {
   });
   // 蛇头 (2,2)，蛇身在运动方向的反方向 (1,2)
   expect(env.snake.length).toBe(2);
-  expect(env.map[2][2]).toBe(NodeType.SnakeHead);
-  expect(env.map[2][1]).toBe(NodeType.SnakeBody);
-  expect(env.map[2][3]).toBe(NodeType.Food);
+  expect(cell(env.map, 2, 2, 5)).toBe(NodeType.SnakeHead);
+  expect(cell(env.map, 2, 1, 5)).toBe(NodeType.SnakeBody);
+  expect(cell(env.map, 2, 3, 5)).toBe(NodeType.Food);
 });

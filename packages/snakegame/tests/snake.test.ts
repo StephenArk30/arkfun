@@ -1,5 +1,5 @@
 import Snake, { DirectionDelta, opposite, SnakeDirection } from '../src/snake';
-import { MapNode, random } from '../src/common';
+import { createRNG, MapNode, random } from '../src/common';
 import { createMockContext } from './helpers';
 
 describe('opposite', () => {
@@ -50,6 +50,14 @@ describe('Snake', () => {
     expect(makeSnake({ direction: -1 }).getDirection()).toBe(SnakeDirection.DOWN);
     expect(makeSnake({ direction: 99 }).getDirection()).toBe(SnakeDirection.DOWN);
     expect(spy).toHaveBeenCalledWith(SnakeDirection.MIN, SnakeDirection.MAX);
+  });
+
+  it('uses the injected rng when the direction falls back to random', () => {
+    const rng = createRNG(42);
+    const spy = jest.spyOn(rng, 'randRange');
+    makeSnake({ direction: -1, rng });
+    expect(spy).toHaveBeenCalledWith(SnakeDirection.MIN, SnakeDirection.MAX);
+    expect(makeSnake({ rng }).getDirection()).toBeGreaterThanOrEqual(SnakeDirection.MIN);
   });
 
   it('defaults to length 1 without snakeLen', () => {

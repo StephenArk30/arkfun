@@ -13,12 +13,9 @@ const buildObs = (
   food: [number, number],
   mapOverrides: Array<[number, number, NodeType]> = [],
 ) => {
-  const map: NodeType[][] = Array.from(
-    { length: 5 },
-    () => Array.from({ length: 5 }, () => NodeType.Empty),
-  );
-  map[head[1]][head[0]] = NodeType.SnakeHead;
-  mapOverrides.forEach(([x, y, type]) => { map[y][x] = type; });
+  const map = new Uint8Array(5 * 5);
+  map[head[1] * 5 + head[0]] = NodeType.SnakeHead;
+  mapOverrides.forEach(([x, y, type]) => { map[y * 5 + x] = type; });
   const snake = new Snake({
     head: new MapNode(head[0], head[1]),
     ctx: createMockContext(),
@@ -26,7 +23,15 @@ const buildObs = (
     gridA: 1,
     direction,
   });
-  return { map, snake, food: new MapNode(food[0], food[1]), barriers: [] as MapNode[] };
+  return {
+    type: 'full' as const,
+    map,
+    col: 5,
+    row: 5,
+    snake,
+    food: new MapNode(food[0], food[1]),
+    barriers: [] as MapNode[],
+  };
 };
 
 describe('aStar', () => {

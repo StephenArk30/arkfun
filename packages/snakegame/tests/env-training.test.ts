@@ -14,8 +14,7 @@ describe('SnakeGameEnv training support', () => {
       expect(env.canvas).toBeNull();
       expect(env.ctx).toBeNull();
       expect(env.gridA).toBe(0);
-      expect(env.map).toHaveLength(5);
-      expect(env.map[0]).toHaveLength(5);
+      expect(env.map).toHaveLength(25);
       expect(env.barriers).toHaveLength(2);
 
       // 渲染相关方法在无头模式下全部安全空转

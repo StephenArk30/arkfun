@@ -1,7 +1,7 @@
-import SnakeGameEnv from '../src/env';
+import SnakeGameEnv, { SnakeObservation } from '../src/env';
 import { NodeType } from '../src/common';
 import { SnakeDirection } from '../src/snake';
-import { appendCanvas, mockRandRange } from './helpers';
+import { appendCanvas, cell, mockRandRange } from './helpers';
 
 describe('SnakeGameEnv barriers', () => {
   afterEach(() => {
@@ -21,8 +21,8 @@ describe('SnakeGameEnv barriers', () => {
     expect(env.barriers).toHaveLength(2);
     expect(env.barriers[0].toArray()).toEqual([0, 0]);
     expect(env.barriers[1].toArray()).toEqual([4, 4]);
-    expect(env.map[0][0]).toBe(NodeType.Barrier);
-    expect(env.map[4][4]).toBe(NodeType.Barrier);
+    expect(cell(env.map, 0, 0, 5)).toBe(NodeType.Barrier);
+    expect(cell(env.map, 4, 4, 5)).toBe(NodeType.Barrier);
     expect(env.food.toArray()).toEqual([3, 3]);
   });
 
@@ -36,9 +36,9 @@ describe('SnakeGameEnv barriers', () => {
       direction: SnakeDirection.RIGHT,
     });
     expect(env.barriers).toHaveLength(3);
-    expect(env.map[0][0]).toBe(NodeType.Barrier);
-    expect(env.map[4][4]).toBe(NodeType.Barrier);
-    expect(env.map[1][1]).toBe(NodeType.Barrier);
+    expect(cell(env.map, 0, 0, 5)).toBe(NodeType.Barrier);
+    expect(cell(env.map, 4, 4, 5)).toBe(NodeType.Barrier);
+    expect(cell(env.map, 1, 1, 5)).toBe(NodeType.Barrier);
     expect(env.food.toArray()).toEqual([3, 3]);
   });
 
@@ -58,15 +58,15 @@ describe('SnakeGameEnv barriers', () => {
     mockRandRange(2, 2, 3, 3);
     const env = new SnakeGameEnv(appendCanvas(), { col: 5, row: 5, barriers: 0 });
     expect(env.barriers).toHaveLength(0);
-    expect(env.map.flat().filter((t) => t === NodeType.Barrier)).toHaveLength(0);
+    expect(Array.from(env.map).filter((t) => t === NodeType.Barrier)).toHaveLength(0);
   });
 
   it('clamps the barrier count to the available free cells', () => {
     const env = new SnakeGameEnv(appendCanvas(), { col: 5, row: 5, barriers: 100 });
     // 25 格 - 蛇(1) - 食物(1) = 23
     expect(env.barriers).toHaveLength(23);
-    expect(env.map.flat().filter((t) => t === NodeType.Barrier)).toHaveLength(23);
-    expect(env.map.flat().filter((t) => t === NodeType.Empty)).toHaveLength(0);
+    expect(Array.from(env.map).filter((t) => t === NodeType.Barrier)).toHaveLength(23);
+    expect(Array.from(env.map).filter((t) => t === NodeType.Empty)).toHaveLength(0);
   });
 
   it('retries food placement when the candidate cell is a barrier', () => {
@@ -78,9 +78,9 @@ describe('SnakeGameEnv barriers', () => {
       barriers: 1,
       direction: SnakeDirection.RIGHT,
     });
-    expect(env.map[2][3]).toBe(NodeType.Barrier);
+    expect(cell(env.map, 2, 3, 5)).toBe(NodeType.Barrier);
     expect(env.food.toArray()).toEqual([1, 1]);
-    expect(env.map[1][1]).toBe(NodeType.Food);
+    expect(cell(env.map, 1, 1, 5)).toBe(NodeType.Food);
   });
 
   it('ends the game when the snake head hits a barrier', () => {
@@ -115,11 +115,12 @@ describe('SnakeGameEnv barriers', () => {
     // reset 后：蛇头 (2,2)，障碍物 (0,0)、(4,4)，食物 (3,3)
     jest.restoreAllMocks();
     mockRandRange(2, 2, 0, 0, 4, 4, 3, 3, 1, 1);
-    expect(env.reset().observation.barriers).toBe(env.barriers);
+    const { observation } = env.reset() as { observation: SnakeObservation };
+    expect(observation.barriers).toBe(env.barriers);
   });
 
   it('reset regenerates a random number of barriers each time', () => {
-    // 第一次数量抽到 1（障碍物 (0,0)），食物 (3,3)
+    // 第一次：蛇头 (2,2)，数量抽到 1（障碍物 (0,0)），食物 (3,3)
     mockRandRange(2, 2, 1, 0, 0, 3, 3);
     const env = new SnakeGameEnv(appendCanvas(), {
       col: 5,
@@ -134,7 +135,7 @@ describe('SnakeGameEnv barriers', () => {
     env.reset();
     expect(env.barriers).toHaveLength(2);
     expect(env.snake.head.toArray()).toEqual([2, 2]);
-    expect(env.map[4][4]).toBe(NodeType.Barrier);
-    expect(env.map[3][3]).toBe(NodeType.Barrier);
+    expect(cell(env.map, 4, 4, 5)).toBe(NodeType.Barrier);
+    expect(cell(env.map, 3, 3, 5)).toBe(NodeType.Barrier);
   });
 });

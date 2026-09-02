@@ -165,10 +165,10 @@ describe('PlaySnakeGameHuman', () => {
 describe('printMap', () => {
   it('prints every node type and all direction heads', () => {
     jest.spyOn(console, 'log').mockImplementation(() => {});
-    const map = [
-      [NodeType.Food, NodeType.SnakeHead, NodeType.SnakeBody],
-      [NodeType.Barrier, NodeType.Empty, 99 as unknown as NodeType],
-    ];
+    const map = new Uint8Array([
+      NodeType.Food, NodeType.SnakeHead, NodeType.SnakeBody,
+      NodeType.Barrier, NodeType.Empty, 99 as unknown as NodeType,
+    ]);
     const directions = [
       SnakeDirection.UP,
       SnakeDirection.DOWN,
@@ -183,7 +183,15 @@ describe('printMap', () => {
         gridA: 1,
         direction,
       });
-      printMap({ map, snake, food: new MapNode(0, 0), barriers: [] });
+      printMap({
+        type: 'full',
+        map,
+        col: 3,
+        row: 2,
+        snake,
+        food: new MapNode(0, 0),
+        barriers: [],
+      });
     });
 
     expect(console.log).toHaveBeenCalledWith(expect.stringContaining('o'));

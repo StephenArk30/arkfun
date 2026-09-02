@@ -15,11 +15,17 @@ const random = () => (
   Math.random() < RANDOM_THRESHOLD ? (RANDOM_MAX - 0.01) * Math.random() : 0
 );
 
-const isBarrier = (x: number, y: number, map: NodeType[][]): 1 | 0 => {
-  if (x < 0 || x >= map[0].length
-    || y < 0 || y >= map.length
-    || map[y][x] === NodeType.Barrier
-    || [NodeType.SnakeHead, NodeType.SnakeBody].includes(map[y][x])) {
+const isBarrier = (
+  x: number,
+  y: number,
+  map: Uint8Array,
+  col: number,
+  row: number,
+): 1 | 0 => {
+  if (x < 0 || x >= col
+    || y < 0 || y >= row
+    || map[y * col + x] === NodeType.Barrier
+    || [NodeType.SnakeHead, NodeType.SnakeBody].includes(map[y * col + x])) {
     return 1;
   }
   return 0;
@@ -45,7 +51,7 @@ export const aStar: SnakeAIFunction = async (obs) => {
     if (direction !== opposite(obs.snake.getDirection())) {
       const [deltaX, deltaY] = DirectionDelta[direction].toArray();
       const [nextX, nextY] = [x + deltaX, y + deltaY];
-      const g = isBarrier(nextX, nextY, obs.map);
+      const g = isBarrier(nextX, nextY, obs.map, obs.col, obs.row);
       // the snake trend to move cling to the wall or itself,
       // to have more space
       getVDirection(direction).forEach((vDirection) => {

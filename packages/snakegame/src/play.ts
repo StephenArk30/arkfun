@@ -10,16 +10,16 @@ const HEAD_STR_MAP = {
   [SnakeDirection.RIGHT]: '>',
 };
 
-export function printMap({ map, snake }: SnakeObservation) {
+export function printMap({ map, col, snake }: SnakeObservation) {
   let mapStr = ' \t';
-  for (let i = 0; i < map[0].length; i += 1) {
+  for (let i = 0; i < col; i += 1) {
     mapStr += `${i}\t`;
   }
   mapStr += '\n';
-  for (let i = 0; i < map.length; i += 1) {
+  for (let i = 0; i < map.length / col; i += 1) {
     mapStr += `${i}\t`;
-    for (let j = 0; j < map[i].length; j += 1) {
-      switch (map[i][j]) {
+    for (let j = 0; j < col; j += 1) {
+      switch (map[i * col + j]) {
       case NodeType.Food:
         mapStr += 'o';
         break;
@@ -49,15 +49,19 @@ export function PlaySnakeGame(
   config: Partial<SnakeGameConfig> = {},
   debug = false,
 ) {
-  const env = new SnakeGameEnv(canvas, { ...config, debug });
-  let { observation } = env.reset();
+  // 内置 AI 与 printMap 依赖完整地图观察，强制 observationType 为 'full'
+  const env = new SnakeGameEnv(canvas, { ...config, debug, observationType: 'full' });
+  let { observation } = env.reset() as { observation: SnakeObservation };
   if (debug) printMap(observation);
   let done = false;
   let action;
   async function performOneFrame() {
     env.render();
     action = await snakeAI(observation);
-    const { observation: _obs, done: _done } = env.step(action);
+    const { observation: _obs, done: _done } = env.step(action) as {
+      observation: SnakeObservation;
+      done: boolean;
+    };
     observation = _obs;
     if (debug) printMap(observation);
     done = _done;

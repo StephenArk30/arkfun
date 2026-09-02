@@ -60,6 +60,63 @@ while (!done) {
 - `debug: true` 时才会在游戏结束/胜利时打印日志（训练时保持关闭）
 - 无头模式下 `render()`/`close()` 均为安全空操作
 
+## Size-independent observations & relative actions (P1)
+
+### 观察编码 `observationType`
+
+默认 `'full'` 返回完整地图。为跨地图尺寸泛化训练，另有两种**输出形状恒定**的编码：
+
+```ts
+const env = new SnakeGameEnv(null, {
+  col: 15, row: 15,
+  barriers: [0, 20],
+  observationType: 'window', // 'full'（默认）| 'window' | 'ray'
+  windowSize: 15,            // window 模式边长（奇数），默认 15
+});
+
+const { observation } = env.reset();
+// window 模式：
+//   observation.window: Float32Array(windowSize² × 3)，NHWC 通道在最后
+//     ch0 障碍（含越界墙）、ch1 蛇身、ch2 食物，以蛇头为中心
+//   observation.scalars: Float32Array(11)
+//     [0,1] 食物相对方向、[2,5] 朝向 one-hot、[6] 蛇长占比、
+//     [7] 障碍占比、[8] 空格率、[9,10] 地图宽高比
+// ray 模式：
+//   observation.rays: Float32Array(8 × 4)
+//     8 个罗盘方向，每向 [1/(1+距离), 墙, 障碍, 蛇身 one-hot]
+//   observation.scalars 同上
+```
+
+内部地图为行优先展平的 `Uint8Array`（`index = row * col + col`），
+`'full'` 观察附带 `col`/`row` 字段方便索引，也便于直接序列化喂给 Python。
+
+### 动作空间 `actionMode`
+
+```ts
+const env = new SnakeGameEnv(null, {
+  col: 10, row: 10,
+  actionMode: 'relative', // 'absolute'（默认，4 方向）| 'relative'
+});
+
+import { SnakeRelativeAction } from '@arkfun/snakegame';
+env.step(SnakeRelativeAction.TurnLeft);  // 左转（逆时针）
+env.step(SnakeRelativeAction.Forward);   // 直行
+env.step(SnakeRelativeAction.TurnRight); // 右转（顺时针）
+```
+
+- `relative` 模式以蛇当前朝向为基准，**不存在非法动作**，策略天然与绝对朝向解耦
+- `absolute` 模式下反向输入默认静默替换为当前方向；配置
+  `illegalAction: 'penalty'`（配合 `illegalReward`，默认 -0.1）可额外扣分
+
+### 初始蛇长 `snakeLen`
+
+```ts
+snakeLen: 3,       // 固定 3 节
+snakeLen: [2, 5],  // 每局在 [2, 5] 内随机
+```
+
+上限自动钳制到 `min(col, row)`；蛇身沿运动反方向排布并保证落在界内。
+
 ## Developing
 
 ```bash
