@@ -113,6 +113,8 @@ describe('SnakeGameEnv training support', () => {
       expect(res.terminated).toBe(true);
       expect(res.truncated).toBe(false);
       expect(res.reward).toBeCloseTo(-1.01);
+      expect(res.info.cause).toBe('wall');
+      expect(res.info.illegal).toBe(false);
       expect(env.score).toBe(1);
     });
 
@@ -133,6 +135,7 @@ describe('SnakeGameEnv training support', () => {
       expect(res.done).toBe(true);
       expect(res.terminated).toBe(false);
       expect(res.truncated).toBe(true);
+      expect(res.info.cause).toBe('timeout');
       expect(env.steps).toBe(2);
     });
 
@@ -154,6 +157,7 @@ describe('SnakeGameEnv training support', () => {
       res = env.step(SnakeDirection.RIGHT);
       expect(res.done).toBe(true);
       expect(res.terminated).toBe(true);
+      expect(res.info.cause).toBe('win');
       // 胜利奖励 = foodReward + winReward
       expect(res.reward).toBe(11);
 

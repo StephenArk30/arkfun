@@ -117,6 +117,24 @@ snakeLen: [2, 5],  // 每局在 [2, 5] 内随机
 
 上限自动钳制到 `min(col, row)`；蛇身沿运动反方向排布并保证落在界内。
 
+## Episode info & connectivity (P2)
+
+`step` 返回 `info`，用于训练监控与死因归因：
+
+```ts
+const { reward, terminated, truncated, info } = env.step(action);
+// info: {
+//   cause?: 'wall' | 'body' | 'barrier' | 'win' | 'timeout',
+//   illegal: boolean,  // absolute 模式下输入是否为反向（被替换）
+//   score: number,
+//   steps: number,
+// }
+```
+
+`barrierPlacement: 'reachable'`（默认 `'uniform'`）：从蛇头 BFS，
+保证食物只落在可达连通区的空格上（蛇身可穿越），避免开局即不可解的地图；
+极端情况下蛇头被障碍围死时退回均匀随机。
+
 ## Developing
 
 ```bash

@@ -25,6 +25,17 @@ export type SnakeObservation = {
 
 export type SnakeAnyObservation = SnakeObservation | WindowObservation | RayObservation;
 
+// 终止原因：wall/body/barrier 为死亡，win 为胜利，timeout 为超时截断
+export type SnakeDeathCause = 'wall' | 'body' | 'barrier' | 'win' | 'timeout';
+
+// step 返回的 info：训练监控与死因归因
+export type SnakeStepInfo = {
+  cause?: SnakeDeathCause;
+  illegal: boolean;
+  score: number;
+  steps: number;
+};
+
 // 障碍物数量：固定数量，或 [min, max] 区间内随机（含边界，min > max 时自动交换）
 export type BarrierCount = number | [number, number];
 
@@ -60,6 +71,8 @@ export type SnakeGameConfig = {
   illegalReward?: number,
   // 初始蛇长：固定值或 [min, max] 随机；缺省 1
   snakeLen?: SnakeLenCount,
+  // 障碍生成策略：'uniform'（默认，均匀随机）| 'reachable'（BFS 保证食物与蛇头连通）
+  barrierPlacement?: 'uniform' | 'reachable',
   // 观察编码：'full'（默认，完整地图）| 'window'（局部窗口+全局标量）|
   // 'ray'（8 向射线+全局标量）。后两者输出形状与地图尺寸无关
   observationType?: 'full' | 'window' | 'ray',
@@ -83,14 +96,14 @@ const defaultConfig: SnakeGameConfig = {
   actionMode: 'absolute',
   illegalAction: 'ignore',
   illegalReward: -0.1,
+  barrierPlacement: 'uniform',
   observationType: 'full',
   windowSize: 15,
 };
 
 export class SnakeGameEnv implements Env<
   SnakeDirection | SnakeRelativeAction,
-  SnakeAnyObservation,
-  void
+  SnakeAnyObservation
 > {
   // 无头模式（canvas 传 null）下 canvas/ctx 为 null，游戏逻辑完全不依赖 DOM
   canvas: HTMLCanvasElement | null;
@@ -198,14 +211,48 @@ export class SnakeGameEnv implements Env<
   }
 
   protected genFood() {
+    const node = this.config.barrierPlacement === 'reachable'
+      ? this.randomReachableNode()
+      : this.randomNode();
     this.food = new Food(
-      this.randomNode(),
+      node,
       this.ctx,
       this.gridA / 2,
       this.config.foodColor as string,
       this.config.bgColor as string,
     );
     this.map[this.food.row * this.config.col + this.food.col] = NodeType.Food;
+  }
+
+  // BFS 遍历蛇头可达的所有非障碍格（蛇身可穿越——蛇会移动），
+  // 从可达的空格中均匀挑一个放食物，保证开局食物必然可达。
+  // 极端情况下（蛇头被障碍完全围死、无可达空格）退回均匀随机。
+  protected randomReachableNode(): MapNode {
+    const { col, row } = this.config;
+    const visited = new Uint8Array(col * row);
+    const headIdx = this.snake.head.row * col + this.snake.head.col;
+    const queue = [headIdx];
+    visited[headIdx] = 1;
+    const candidates: number[] = [];
+    const visit = (next: number) => {
+      if (!visited[next] && this.map[next] !== NodeType.Barrier) {
+        visited[next] = 1;
+        queue.push(next);
+      }
+    };
+    for (let qi = 0; qi < queue.length; qi += 1) {
+      const idx = queue[qi];
+      const r = Math.floor(idx / col);
+      const c = idx % col;
+      if (this.map[idx] === NodeType.Empty) candidates.push(idx);
+      if (r > 0) visit(idx - col);
+      if (r < row - 1) visit(idx + col);
+      if (c > 0) visit(idx - 1);
+      if (c < col - 1) visit(idx + 1);
+    }
+    if (candidates.length === 0) return this.randomNode();
+    const pick = candidates[this.rng.randRange(0, candidates.length - 1)];
+    return new MapNode(pick % col, Math.floor(pick / col));
   }
 
   protected genBarriers() {
@@ -310,7 +357,7 @@ export class SnakeGameEnv implements Env<
     if (this.config.debug) console.log('you win!', this.score);
   }
 
-  protected moveSnake(direction: SnakeDirection) {
+  protected moveSnake(direction: SnakeDirection): SnakeDeathCause | null {
     const width = this.config.col;
     let { head } = this.snake;
     this.map[head.row * width + head.col] = this.snake.length === 1
@@ -320,15 +367,23 @@ export class SnakeGameEnv implements Env<
     this.map[tail.row * width + tail.col] = NodeType.Empty;
     head = this.snake.move(direction);
     // map 查表判定碰撞：蛇头原格已改为 SnakeBody、蛇尾已清空，
-    // 因此非 Empty 即墙外/障碍/蛇身（追尾合法）；O(1) 而非 O(蛇长)
+    // 因此越界 / 障碍 / 蛇身（追尾合法）；O(1) 而非 O(蛇长)
     if (head.col < 0 || head.row < 0
-      || head.col >= this.config.col || head.row >= this.config.row
-      || this.map[head.row * width + head.col] !== NodeType.Empty) {
+      || head.col >= this.config.col || head.row >= this.config.row) {
       this.gameOver();
-      return true;
+      return 'wall';
+    }
+    const cell = this.map[head.row * width + head.col];
+    if (cell === NodeType.Barrier) {
+      this.gameOver();
+      return 'barrier';
+    }
+    if (cell === NodeType.SnakeBody) {
+      this.gameOver();
+      return 'body';
     }
     this.map[head.row * width + head.col] = NodeType.SnakeHead;
-    return false;
+    return null;
   }
 
   protected eatFood(direction: SnakeDirection) {
@@ -366,6 +421,7 @@ export class SnakeGameEnv implements Env<
     }
     let terminated = false;
     let truncated = false;
+    let cause: SnakeDeathCause | undefined;
     const head = this.snake.moveHead(direction);
     if (head.equals(this.food)) {
       this.eatFood(direction);
@@ -375,25 +431,37 @@ export class SnakeGameEnv implements Env<
         reward += this.config.winReward as number;
         this.gameWin();
         terminated = true;
+        cause = 'win';
       } else {
         this.genFood();
       }
-    } else if (this.moveSnake(direction)) {
-      reward += this.config.deathReward as number;
-      this.gameOver();
-      terminated = true;
+    } else {
+      const deathCause = this.moveSnake(direction);
+      if (deathCause != null) {
+        reward += this.config.deathReward as number;
+        terminated = true;
+        cause = deathCause;
+      }
     }
     this.steps += 1;
     const maxSteps = this.config.maxSteps as number;
     if (!terminated && maxSteps > 0 && this.steps >= maxSteps) {
       truncated = true;
+      cause = 'timeout';
     }
+    const info: SnakeStepInfo = {
+      cause,
+      illegal,
+      score: this.score,
+      steps: this.steps,
+    };
     return {
       reward,
       done: terminated || truncated,
       terminated,
       truncated,
       observation: this.getObservation(),
+      info,
     };
   }
 

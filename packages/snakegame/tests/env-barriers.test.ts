@@ -96,6 +96,7 @@ describe('SnakeGameEnv barriers', () => {
     });
     const res = env.step(SnakeDirection.RIGHT);
     expect(res.done).toBe(true);
+    expect(res.info.cause).toBe('barrier');
     expect(logSpy).toHaveBeenCalledWith('game over!', 0);
   });
 

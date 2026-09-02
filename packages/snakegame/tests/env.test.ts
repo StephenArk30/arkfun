@@ -29,7 +29,7 @@ const placeSnake = (
 const runMoveSnake = (nodes: Array<[number, number]>, direction: SnakeDirection) => {
   const env = new SnakeGameEnv(appendCanvas(), { col: 5, row: 5, debug: true });
   placeSnake(env, nodes, direction);
-  return (env as any).moveSnake(direction) as boolean;
+  return (env as any).moveSnake(direction) as string | null;
 };
 
 describe('SnakeGameEnv', () => {
@@ -127,23 +127,23 @@ describe('SnakeGameEnv', () => {
 
   it('moveSnake detects hitting each wall', () => {
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-    expect(runMoveSnake([[0, 2]], SnakeDirection.LEFT)).toBe(true);
-    expect(runMoveSnake([[2, 0]], SnakeDirection.UP)).toBe(true);
-    expect(runMoveSnake([[4, 2]], SnakeDirection.RIGHT)).toBe(true);
-    expect(runMoveSnake([[2, 4]], SnakeDirection.DOWN)).toBe(true);
+    expect(runMoveSnake([[0, 2]], SnakeDirection.LEFT)).toBe('wall');
+    expect(runMoveSnake([[2, 0]], SnakeDirection.UP)).toBe('wall');
+    expect(runMoveSnake([[4, 2]], SnakeDirection.RIGHT)).toBe('wall');
+    expect(runMoveSnake([[2, 4]], SnakeDirection.DOWN)).toBe('wall');
     expect(logSpy).toHaveBeenCalledWith('game over!', 0);
   });
 
   it('moveSnake detects colliding with its own body', () => {
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-    expect(runMoveSnake([[2, 2], [2, 3], [3, 3]], SnakeDirection.DOWN)).toBe(true);
+    expect(runMoveSnake([[2, 2], [2, 3], [3, 3]], SnakeDirection.DOWN)).toBe('body');
     expect(logSpy).toHaveBeenCalledWith('game over!', 0);
   });
 
-  it('moveSnake returns false for a safe move and updates the map', () => {
+  it('moveSnake returns null for a safe move and updates the map', () => {
     const env = new SnakeGameEnv(appendCanvas(), { col: 5, row: 5 });
     const snake = placeSnake(env, [[2, 2], [2, 3]], SnakeDirection.LEFT);
-    expect((env as any).moveSnake(SnakeDirection.LEFT)).toBe(false);
+    expect((env as any).moveSnake(SnakeDirection.LEFT)).toBeNull();
     expect(snake.head.toArray()).toEqual([1, 2]);
     expect(cell(env.map, 2, 1, 5)).toBe(NodeType.SnakeHead);
   });
@@ -183,6 +183,11 @@ describe('SnakeGameEnv', () => {
     // 撞上边界，游戏结束
     res = env.step(SnakeDirection.UP);
     expect(res.done).toBe(true);
+    expect(res.terminated).toBe(true);
+    expect(res.info.cause).toBe('wall');
+    expect(res.info.illegal).toBe(false);
+    expect(res.info.score).toBe(1);
+    expect(res.info.steps).toBe(4);
     expect(logSpy).toHaveBeenCalledWith('game over!', 1);
   });
 
@@ -207,6 +212,7 @@ describe('SnakeGameEnv', () => {
     res = env.step(SnakeDirection.RIGHT);
     expect(res.reward).toBe(1);
     expect(res.done).toBe(true);
+    expect(res.info.cause).toBe('win');
     expect(env.snake.length).toBe(3);
     expect(logSpy).toHaveBeenCalledWith('you win!', 2);
   });

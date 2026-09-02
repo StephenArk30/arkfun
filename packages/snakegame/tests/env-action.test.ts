@@ -78,6 +78,7 @@ describe('SnakeGameEnv action modes', () => {
     // 反向输入 LEFT 被替换为 RIGHT：吃到食物，奖励 = food + illegal
     const res = env.step(SnakeDirection.LEFT);
     expect(res.reward).toBeCloseTo(0.5);
+    expect(res.info.illegal).toBe(true);
     expect(env.snake.head.toArray()).toEqual([3, 2]);
     expect(env.snake.getDirection()).toBe(SnakeDirection.RIGHT);
   });
