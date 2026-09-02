@@ -3,6 +3,9 @@ export interface Env<ActType, ObsType, RenderFrame> {
     observation: ObsType;
     reward: number;
     done: boolean;
+    // gymnasium 语义：terminated = 真实终止（死亡/胜利），truncated = 超时截断
+    terminated: boolean;
+    truncated: boolean;
     info?: any;
   };
 

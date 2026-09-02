@@ -27,6 +27,39 @@ new SnakeGameEnv(canvas, {
 
 数量会被自动限制在可用空格内（始终为蛇和食物保留位置）。
 
+## Training (headless mode)
+
+`SnakeGameEnv` 支持无头模式：`canvas` 传 `null` 即可在 Node.js 中无 DOM 运行，
+游戏逻辑与渲染完全解耦，适合 RL 训练：
+
+```ts
+const env = new SnakeGameEnv(null, {
+  col: 15,
+  row: 15,
+  barriers: [0, 20],   // 每局随机障碍数（domain randomization）
+  seed: 42,            // mulberry32 确定性 RNG，实验可复现
+  // 奖励塑形（默认：仅吃食物 +1）
+  foodReward: 1,
+  stepReward: -0.01,
+  deathReward: -1,
+  winReward: 10,
+  maxSteps: 500,       // 超时截断，0 = 不限制
+});
+
+env.reset(42);         // gym 惯例：仅显式传 seed 时才重新播种
+let done = false;
+while (!done) {
+  const { reward, done: _done, terminated, truncated } = env.step(action);
+  done = _done;        // done = terminated || truncated（gymnasium 语义）
+}
+```
+
+- `reset(seed)` / 构造配置 `seed`：确定性采样（蛇/食物/障碍布局、随机初始朝向均可复现）
+- `step` 返回 `terminated`（死亡/胜利）与 `truncated`（`maxSteps` 超时），
+  便于训练时正确 bootstrap 值函数
+- `debug: true` 时才会在游戏结束/胜利时打印日志（训练时保持关闭）
+- 无头模式下 `render()`/`close()` 均为安全空操作
+
 ## Developing
 
 ```bash

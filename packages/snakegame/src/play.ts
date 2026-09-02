@@ -49,7 +49,7 @@ export function PlaySnakeGame(
   config: Partial<SnakeGameConfig> = {},
   debug = false,
 ) {
-  const env = new SnakeGameEnv(canvas, config);
+  const env = new SnakeGameEnv(canvas, { ...config, debug });
   let { observation } = env.reset();
   if (debug) printMap(observation);
   let done = false;

@@ -3,7 +3,8 @@ import { MapNode } from './common';
 export default class Food extends MapNode {
   constructor(
     node: MapNode,
-    protected ctx: CanvasRenderingContext2D,
+    // 无头模式下 ctx 为 null，Food 只承担位置逻辑
+    protected ctx: CanvasRenderingContext2D | null,
     protected radius: number,
     protected color: string = '#fff',
     protected bgColor: string = '#000',
@@ -12,6 +13,7 @@ export default class Food extends MapNode {
   }
 
   draw() {
+    if (!this.ctx) return;
     this.ctx.fillStyle = this.color;
     this.ctx.beginPath();
     this.ctx.arc(
@@ -26,6 +28,7 @@ export default class Food extends MapNode {
   }
 
   clear() {
+    if (!this.ctx) return;
     this.ctx.fillStyle = this.bgColor;
     this.ctx.fillRect(
       this.col * this.radius * 2,

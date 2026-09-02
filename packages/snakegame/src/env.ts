@@ -1,5 +1,5 @@
 import Snake, { opposite, SnakeDirection } from './snake';
-import { MapNode, NodeType, random } from './common';
+import { createRNG, MapNode, NodeType, random, RNG } from './common';
 import Food from './food';
 import { Env } from './types';
 
@@ -22,6 +22,17 @@ export type SnakeGameConfig = {
   direction?: SnakeDirection,
   barriers?: BarrierCount,
   barrierColor?: string,
+  // 游戏结束/胜利时是否打印日志（训练时保持关闭，避免刷屏拖慢速度）
+  debug?: boolean,
+  // 随机种子：构造时或 reset(seed) 时传入，使用 mulberry32 确定性 RNG 复现实验
+  seed?: number,
+  // 奖励塑形。默认值保持原有行为：仅吃食物 +1，其余为 0
+  foodReward?: number,
+  stepReward?: number,
+  deathReward?: number,
+  winReward?: number,
+  // 每局最大步数，达到后截断（truncated = true）；0 表示不限制
+  maxSteps?: number,
 }
 
 const defaultConfig: SnakeGameConfig = {
@@ -31,49 +42,65 @@ const defaultConfig: SnakeGameConfig = {
   foodColor: '#ff0',
   bgColor: '#000',
   barrierColor: '#888',
+  debug: false,
+  foodReward: 1,
+  stepReward: 0,
+  deathReward: 0,
+  winReward: 0,
+  maxSteps: 0,
 };
 
 export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> {
-  canvas: HTMLCanvasElement;
-  ctx: CanvasRenderingContext2D;
+  // 无头模式（canvas 传 null）下 canvas/ctx 为 null，游戏逻辑完全不依赖 DOM
+  canvas: HTMLCanvasElement | null;
+  ctx: CanvasRenderingContext2D | null;
   protected config: SnakeGameConfig;
+  // 当前 RNG：默认全局随机源，reset(seed) 后切换为确定性 RNG
+  protected rng: RNG = random;
   snake: Snake = null;
   food: Food = null;
   barriers: MapNode[] = [];
   gridA: number = 0;
   score: number = 0;
+  steps: number = 0;
   map: NodeType[][] = null;
 
   constructor(
-    canvas: string | HTMLCanvasElement = 'snake_container',
+    canvas: string | HTMLCanvasElement | null = 'snake_container',
     config: Partial<SnakeGameConfig> = {},
   ) {
-    this.canvas = typeof canvas === 'string'
-      ? document.getElementById(canvas) as HTMLCanvasElement
-      : canvas;
-    const ctx = this.canvas.getContext('2d');
-    if (!ctx) throw new Error('get canvas context failed');
-    this.ctx = ctx;
     this.config = {
       ...defaultConfig,
       ...config,
     };
-    this.config.col = Math.min(this.config.col, this.canvas.width);
-    this.config.row = Math.min(this.config.row, this.canvas.height);
-    this.canvas.width -= this.canvas.width % this.config.col;
-    this.gridA = this.canvas.width / this.config.col;
-    this.canvas.height = this.config.row * this.gridA;
-    this.reset();
+    if (canvas === null) {
+      // 无头模式：col/row 是纯逻辑量，跳过所有渲染初始化
+      this.canvas = null;
+      this.ctx = null;
+      this.gridA = 0;
+    } else {
+      this.canvas = typeof canvas === 'string'
+        ? document.getElementById(canvas) as HTMLCanvasElement
+        : canvas;
+      if (this.canvas == null) throw new Error(`canvas ${canvas} not found`);
+      const ctx = this.canvas.getContext('2d');
+      if (!ctx) throw new Error('get canvas context failed');
+      this.ctx = ctx;
+      this.config.col = Math.min(this.config.col, this.canvas.width);
+      this.config.row = Math.min(this.config.row, this.canvas.height);
+      this.canvas.width -= this.canvas.width % this.config.col;
+      this.gridA = this.canvas.width / this.config.col;
+      this.canvas.height = this.config.row * this.gridA;
+    }
+    this.reset(this.config.seed);
   }
 
   randomNode() {
-    let col = random.randRange(this.config.col as number - 1);
-    let row = random.randRange(this.config.row as number - 1);
-    // genSnake 生成新蛇前地图为全空，此时仍需避让上一局的旧蛇
-    while ((this.snake != null && this.snake.includes(new MapNode(col, row)))
-      || this.map[row][col] !== NodeType.Empty) {
-      col = random.randRange(this.config.col as number - 1);
-      row = random.randRange(this.config.row as number - 1);
+    let col = this.rng.randRange(this.config.col as number - 1);
+    let row = this.rng.randRange(this.config.row as number - 1);
+    while (this.map[row][col] !== NodeType.Empty) {
+      col = this.rng.randRange(this.config.col as number - 1);
+      row = this.rng.randRange(this.config.row as number - 1);
     }
     return new MapNode(col, row);
   }
@@ -94,6 +121,7 @@ export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> 
       color: this.config.snakeColor as string,
       direction: this.config.direction,
       gridA: this.gridA,
+      rng: this.rng,
     });
     this.snake.nodes.forEach((node, index) => {
       let type = NodeType.SnakeBody;
@@ -122,7 +150,7 @@ export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> 
     if (Array.isArray(barriers)) {
       const min = Math.min(barriers[0], barriers[1]);
       const max = Math.max(barriers[0], barriers[1]);
-      count = random.randRange(min, max);
+      count = this.rng.randRange(min, max);
     } else {
       count = barriers;
     }
@@ -148,16 +176,20 @@ export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> 
     };
   }
 
-  reset() {
+  reset(seed?: number) {
+    // gym 惯例：仅在显式传入 seed 时重新播种，否则沿用当前 RNG
+    if (seed !== undefined) this.rng = createRNG(seed);
     this.genMap();
     this.genSnake();
     this.genBarriers();
     this.genFood();
     this.score = 0;
+    this.steps = 0;
     return { observation: this.getObservation() };
   }
 
   fillCanvas() {
+    if (!this.ctx) return;
     this.ctx.fillStyle = this.config.bgColor as string;
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
   }
@@ -170,7 +202,7 @@ export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> 
   }
 
   protected drawBarriers() {
-    if (this.barriers.length === 0) return;
+    if (this.barriers.length === 0 || !this.ctx) return;
     this.ctx.fillStyle = this.config.barrierColor as string;
     this.ctx.beginPath();
     this.barriers.forEach((node) => {
@@ -185,11 +217,11 @@ export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> 
   }
 
   protected gameOver() {
-    console.log('game over!', this.score);
+    if (this.config.debug) console.log('game over!', this.score);
   }
 
   protected gameWin() {
-    console.log('you win!', this.score);
+    if (this.config.debug) console.log('you win!', this.score);
   }
 
   protected moveSnake(direction: SnakeDirection) {
@@ -226,30 +258,42 @@ export class SnakeGameEnv implements Env<SnakeDirection, SnakeObservation, any> 
       action = this.snake.getDirection();
     }
 
-    let reward = 0;
-    let done = false;
+    let reward = this.config.stepReward as number;
+    let terminated = false;
+    let truncated = false;
     const head = this.snake.moveHead(action);
     if (head.equals(this.food)) {
       this.eatFood(action);
-      reward += 1;
-      this.score += reward;
+      reward += this.config.foodReward as number;
+      this.score += this.config.foodReward as number;
       if (this.isWin()) {
+        reward += this.config.winReward as number;
         this.gameWin();
-        done = true;
+        terminated = true;
       } else {
         this.genFood();
       }
-    } else {
-      done = this.moveSnake(action);
+    } else if (this.moveSnake(action)) {
+      reward += this.config.deathReward as number;
+      this.gameOver();
+      terminated = true;
+    }
+    this.steps += 1;
+    const maxSteps = this.config.maxSteps as number;
+    if (!terminated && maxSteps > 0 && this.steps >= maxSteps) {
+      truncated = true;
     }
     return {
       reward,
-      done,
+      done: terminated || truncated,
+      terminated,
+      truncated,
       observation: this.getObservation(),
     };
   }
 
   close(): void {
+    if (!this.ctx) return;
     window.requestAnimationFrame(() => {
       this.render();
     });

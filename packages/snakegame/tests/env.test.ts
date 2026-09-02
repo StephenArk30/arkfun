@@ -30,7 +30,7 @@ const placeSnake = (
 };
 
 const runMoveSnake = (nodes: Array<[number, number]>, direction: SnakeDirection) => {
-  const env = new SnakeGameEnv(appendCanvas(), { col: 5, row: 5 });
+  const env = new SnakeGameEnv(appendCanvas(), { col: 5, row: 5, debug: true });
   placeSnake(env, nodes, direction);
   return (env as any).moveSnake(direction) as boolean;
 };
@@ -159,6 +159,7 @@ describe('SnakeGameEnv', () => {
       col: 5,
       row: 5,
       direction: SnakeDirection.RIGHT,
+      debug: true,
     });
 
     // 向右吃到食物：奖励、得分、变长、生成新食物
@@ -197,6 +198,7 @@ describe('SnakeGameEnv', () => {
       col: 3,
       row: 1,
       direction: SnakeDirection.RIGHT,
+      debug: true,
     });
 
     let res = env.step(SnakeDirection.RIGHT);

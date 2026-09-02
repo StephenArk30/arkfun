@@ -26,3 +26,9 @@ it('clears with the background color', () => {
   expect(ctx.fillStyle).toBe('#000');
   expect(ctx.fillRect).toHaveBeenCalledWith(40, 60, 20, 20);
 });
+
+it('skips drawing and clearing without a context', () => {
+  const food = new Food(new MapNode(2, 3), null, 10);
+  expect(() => food.draw()).not.toThrow();
+  expect(() => food.clear()).not.toThrow();
+});

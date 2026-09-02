@@ -92,6 +92,7 @@ describe('SnakeGameEnv barriers', () => {
       row: 5,
       barriers: 1,
       direction: SnakeDirection.RIGHT,
+      debug: true,
     });
     const res = env.step(SnakeDirection.RIGHT);
     expect(res.done).toBe(true);
@@ -111,14 +112,14 @@ describe('SnakeGameEnv barriers', () => {
   it('exposes barriers in the observation', () => {
     mockRandRange(2, 2, 0, 0, 4, 4, 3, 3);
     const env = new SnakeGameEnv(appendCanvas(), { col: 5, row: 5, barriers: 2 });
-    // reset 时新蛇头 (2,2) 撞旧蛇重试到 (0,0)，障碍物 (4,4)、(3,3)，食物 (1,1)
+    // reset 后：蛇头 (2,2)，障碍物 (0,0)、(4,4)，食物 (3,3)
     jest.restoreAllMocks();
     mockRandRange(2, 2, 0, 0, 4, 4, 3, 3, 1, 1);
     expect(env.reset().observation.barriers).toBe(env.barriers);
   });
 
   it('reset regenerates a random number of barriers each time', () => {
-    // 第一次数量抽到 1（障碍物 (0,0)）
+    // 第一次数量抽到 1（障碍物 (0,0)），食物 (3,3)
     mockRandRange(2, 2, 1, 0, 0, 3, 3);
     const env = new SnakeGameEnv(appendCanvas(), {
       col: 5,
@@ -127,12 +128,12 @@ describe('SnakeGameEnv barriers', () => {
       direction: SnakeDirection.RIGHT,
     });
     expect(env.barriers).toHaveLength(1);
-    // reset 后数量抽到 2：蛇头撞旧蛇重试到 (0,0)，障碍物 (4,4)、(3,3)，食物 (1,1)
+    // reset 后数量抽到 2：蛇头 (2,2)，障碍物 (4,4)、(3,3)，食物 (1,1)
     jest.restoreAllMocks();
-    mockRandRange(2, 2, 0, 0, 2, 4, 4, 3, 3, 1, 1);
+    mockRandRange(2, 2, 2, 4, 4, 3, 3, 1, 1);
     env.reset();
     expect(env.barriers).toHaveLength(2);
-    expect(env.snake.head.toArray()).toEqual([0, 0]);
+    expect(env.snake.head.toArray()).toEqual([2, 2]);
     expect(env.map[4][4]).toBe(NodeType.Barrier);
     expect(env.map[3][3]).toBe(NodeType.Barrier);
   });

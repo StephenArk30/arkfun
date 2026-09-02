@@ -1,4 +1,4 @@
-import { MapNode, random } from './common';
+import { MapNode, random, RNG } from './common';
 
 export enum SnakeDirection {
   MIN,
@@ -11,11 +11,13 @@ export enum SnakeDirection {
 
 export interface SnakeConfig {
   head: MapNode;
-  ctx: CanvasRenderingContext2D;
+  // 无头模式下 ctx 为 null，Snake 只承担纯逻辑职责
+  ctx?: CanvasRenderingContext2D | null;
   direction?: SnakeDirection;
   snakeLen?: number; // 初始长度，>= 1
   color: string;
   gridA: number;
+  rng?: RNG; // direction 缺省时的随机来源，传入以保证 reset(seed) 可复现
 }
 
 export const DirectionDelta = {
@@ -42,7 +44,7 @@ export function opposite(direction: SnakeDirection) {
 }
 
 export default class Snake {
-  protected ctx: CanvasRenderingContext2D;
+  protected ctx: CanvasRenderingContext2D | null;
   protected direction: SnakeDirection;
   nodes: MapNode[] = [];
   head: MapNode;
@@ -50,14 +52,14 @@ export default class Snake {
   protected gridA: number;
 
   constructor(config: SnakeConfig) {
-    this.ctx = config.ctx;
+    this.ctx = config.ctx ?? null;
     this.color = config.color;
     this.gridA = config.gridA;
     this.direction = typeof config.direction === 'number'
       && config.direction >= SnakeDirection.MIN
       && config.direction <= SnakeDirection.MAX
       ? config.direction
-      : random.randRange(SnakeDirection.MIN, SnakeDirection.MAX);
+      : (config.rng ?? random).randRange(SnakeDirection.MIN, SnakeDirection.MAX);
     this.nodes.push(config.head);
     [this.head] = this.nodes;
 
@@ -93,6 +95,7 @@ export default class Snake {
   }
 
   draw() {
+    if (!this.ctx) return;
     this.ctx.fillStyle = this.color;
     this.ctx.beginPath();
     this.nodes.forEach((node) => {

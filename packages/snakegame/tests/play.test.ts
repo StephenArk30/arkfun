@@ -45,8 +45,8 @@ describe('PlaySnakeGame', () => {
 
   it('runs frames without debug output while the game continues', async () => {
     // 构造器 reset：蛇头 (2,2)、食物 (3,2)；
-    // PlaySnakeGame 内部再次 reset：蛇头先撞旧蛇 (2,2) 重试到 (3,2)，食物 (4,2)；
-    // 第 1 帧吃到食物后新食物 (1,1)。
+    // PlaySnakeGame 内部再次 reset：蛇头 (2,2)、食物 (3,2)；
+    // 第 1 帧吃到食物后新食物 (4,2)。
     mockRandRange(2, 2, 3, 2, 2, 2, 3, 2, 4, 2, 1, 1);
     const canvas = appendCanvas();
     PlaySnakeGame(canvas, {
@@ -75,14 +75,18 @@ describe('PlaySnakeGame', () => {
     expect(console.log).toHaveBeenCalledWith(expect.stringContaining('o'));
     expect(console.log).toHaveBeenCalledWith(expect.stringContaining('>'));
 
-    await rafCallbacks.shift()!(0); // 第 1 帧：吃到食物 (4,2)
+    await rafCallbacks.shift()!(0); // 第 1 帧：吃到食物 (3,2)
     expect(timeoutCallbacks.length).toBe(1);
     await timeoutCallbacks.shift()!(); // 调度下一帧
     expect(rafCallbacks.length).toBe(1);
 
-    await rafCallbacks.shift()!(0); // 第 2 帧：撞墙，游戏结束
+    await rafCallbacks.shift()!(0); // 第 2 帧：吃到食物 (4,2)
+    expect(timeoutCallbacks.length).toBe(1);
+    await timeoutCallbacks.shift()!(); // 调度下一帧
 
-    expect(console.log).toHaveBeenCalledWith('game over!', 1);
+    await rafCallbacks.shift()!(0); // 第 3 帧：撞墙，游戏结束
+
+    expect(console.log).toHaveBeenCalledWith('game over!', 2);
     expect(timeoutCallbacks.length).toBe(0);
     // env.close() 注册了最后一个渲染帧
     expect(rafCallbacks.length).toBe(1);
@@ -121,7 +125,7 @@ describe('PlaySnakeGameHuman', () => {
 
   it('reacts to the keyboard and cleans up when game over', async () => {
     // 构造器 reset：蛇头 (1,1)、食物 (0,0)；
-    // 内部再次 reset：蛇头撞旧蛇 (1,1) 重试到 (2,2)，食物 (3,3)；
+    // 内部再次 reset：蛇头 (1,1)、食物 (2,2)；
     // 随后 randRange 为初始动作。
     mockRandRange(1, 1, 0, 0, 1, 1, 2, 2, 3, 3, 0);
     const removeSpy = jest.spyOn(window, 'removeEventListener');
@@ -140,14 +144,17 @@ describe('PlaySnakeGameHuman', () => {
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'x' }));
 
     expect(rafCallbacks.length).toBe(1);
-    await rafCallbacks.shift()!(0); // 帧 1：(2,2) → (3,2)
+    await rafCallbacks.shift()!(0); // 帧 1：(1,1) → (2,1)
     expect(timeoutCallbacks.length).toBe(1);
     await timeoutCallbacks.shift()!();
-    await rafCallbacks.shift()!(0); // 帧 2：→ (4,2)
+    await rafCallbacks.shift()!(0); // 帧 2：→ (3,1)
     await timeoutCallbacks.shift()!();
-    await rafCallbacks.shift()!(0); // 帧 3：→ (5,2) 撞墙，游戏结束
+    await rafCallbacks.shift()!(0); // 帧 3：→ (4,1)
+    await timeoutCallbacks.shift()!();
+    await rafCallbacks.shift()!(0); // 帧 4：→ (5,1) 撞墙，游戏结束
 
-    expect(console.log).toHaveBeenCalledWith('game over!', 0);
+    // debug 关闭时游戏结束不再打印日志
+    expect(console.log).not.toHaveBeenCalled();
     expect(removeSpy).toHaveBeenCalledWith('keydown', expect.any(Function));
     // env.close() 注册的渲染帧
     expect(rafCallbacks.length).toBe(1);
