@@ -1,17 +1,20 @@
 {
-  "name": "@arkfun/snakegame",
-  "version": "1.1.0",
+  "name": "@arkfun/snakegame-ai",
+  "version": "0.1.0",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "StephenArk30/arkfun",
-    "directory": "packages/snakegame"
+    "directory": "packages/snakegame-ai"
   },
-  "homepage": "https://github.com/StephenArk30/arkfun/tree/master/packages/snakegame#readme",
-  "keywords": [],
+  "homepage": "https://github.com/StephenArk30/arkfun/tree/master/packages/snakegame-ai#readme",
+  "keywords": [
+    "snake",
+    "reinforcement-learning",
+    "onnx"
+  ],
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
-  "types": "src/index.ts",
   "directories": {
     "dist": "dist",
     "src": "src"
@@ -28,5 +31,8 @@
     "build": "cross-env NODE_ENV=production rollup -c rollup.config.ts --configPlugin typescript",
     "dev": "pnpm clean && cross-env NODE_ENV=development rollup -w -c rollup.dev.config.ts --configPlugin typescript",
     "prepublish": "pnpm build"
+  },
+  "dependencies": {
+    "@arkfun/snakegame": "workspace:*"
   }
 }

@@ -39,7 +39,10 @@ module.exports = {
     'no-param-reassign': 'off',
     'no-loop-func': 'off',
     'import/no-extraneous-dependencies': ['error', {
-      packageDir: [path.resolve(__dirname)],
+      packageDir: [
+        path.resolve(__dirname),
+        path.resolve(__dirname, 'packages/snakegame-ai'),
+      ],
     }],
     'no-continue': 'off',
     indent: ['error', 2],

@@ -85,6 +85,12 @@ importers:
 
   packages/snakegame: {}
 
+  packages/snakegame-ai:
+    dependencies:
+      '@arkfun/snakegame':
+        specifier: workspace:*
+        version: link:../snakegame
+
 packages:
 
   '@asamuzakjp/css-color@3.2.0':

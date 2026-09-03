@@ -1,6 +1,7 @@
 import { SnakeAIFunction } from './common';
 import { DirectionDelta, opposite, SnakeDirection } from '../snake';
 import { MapNode, NodeType } from '../common';
+import { SnakeObservation } from '../env';
 
 const manhattan = (
   node1: MapNode,
@@ -38,7 +39,9 @@ const getVDirection = (direction: SnakeDirection) => (
 );
 
 // a*: f(n) = g(n) + h(n)
-export const aStar: SnakeAIFunction = async (obs) => {
+// 同步核心：训练数据生成（V8 内无法 await）与浏览器策略直接调用；
+// async 包装版 aStar 保留原接口兼容 PlaySnakeGame
+export const aStarSync = (obs: SnakeObservation): SnakeDirection => {
   const [x, y] = obs.snake.head.toArray();
 
   const Fs = {
@@ -73,3 +76,5 @@ export const aStar: SnakeAIFunction = async (obs) => {
   }
   return maxDirection;
 };
+
+export const aStar: SnakeAIFunction = async (obs) => aStarSync(obs);

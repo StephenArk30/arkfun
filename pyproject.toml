@@ -1,0 +1,30 @@
+# Python workspace root（uv），与 pnpm-workspace.yaml 对称：
+# 某个包需要 Python 时，把它的路径加进 members（依赖统一在根 .venv 解析）。
+[project]
+name = "arkfun-python"
+version = "0.0.0"
+description = "Python tooling workspace for the arkfun monorepo"
+requires-python = ">=3.10"
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["packages/snakegame-ai/src/training"]
+
+[dependency-groups]
+dev = ["ruff>=0.6"]
+
+# ---- 全仓共享的 Python 工具链配置 ----
+
+[tool.pytest.ini_options]
+testpaths = ["packages"]
+python_files = ["test_*.py"]
+norecursedirs = ["node_modules", "dist", ".venv", "output"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]

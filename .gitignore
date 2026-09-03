@@ -6,3 +6,10 @@ coverage/
 .vscode/**
 !.vscode/settings.json
 *.log
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+packages/snakegame-ai/src/training/output/

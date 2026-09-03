@@ -7,6 +7,7 @@ export type {
   SnakeObservation,
 } from './env';
 export { PlaySnakeGame, PlaySnakeGameHuman, printMap } from './play';
+export { default as SnakeAI, aStar, aStarSync } from './snakeAI';
 export {
   buildRayObservation,
   buildScalars,

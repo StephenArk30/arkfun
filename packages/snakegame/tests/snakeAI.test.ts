@@ -1,5 +1,6 @@
 import AI from '../src/snakeAI';
-import { aStar } from '../src/snakeAI/aStar';
+import { aStar, aStarSync } from '../src/snakeAI/aStar';
+import { SnakeAI, aStar as aStarFromIndex, aStarSync as aStarSyncFromIndex } from '../src/index';
 import Snake, { SnakeDirection } from '../src/snake';
 import { MapNode, NodeType } from '../src/common';
 import { createMockContext } from './helpers';
@@ -85,5 +86,17 @@ describe('aStar', () => {
   it('default export delegates to aStar', async () => {
     const obs = buildObs([2, 2], SnakeDirection.RIGHT, [4, 2]);
     await expect(AI(obs)).resolves.toBe(SnakeDirection.RIGHT);
+  });
+
+  it('aStarSync returns the same direction as the async wrapper', async () => {
+    const obs = buildObs([2, 2], SnakeDirection.RIGHT, [4, 2]);
+    expect(aStarSync(obs)).toBe(SnakeDirection.RIGHT);
+  });
+
+  it('package index re-exports SnakeAI, aStar and aStarSync', async () => {
+    const obs = buildObs([2, 2], SnakeDirection.RIGHT, [4, 2]);
+    expect(SnakeAI).toBe(AI);
+    expect(aStarFromIndex).toBe(aStar);
+    expect(aStarSyncFromIndex(obs)).toBe(SnakeDirection.RIGHT);
   });
 });
