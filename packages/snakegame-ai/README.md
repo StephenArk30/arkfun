@@ -106,7 +106,8 @@ Adding a new strategy later = one `registerStrategy(...)` call in
 `example/index.ts` (see `src/strategy.ts`); the picker and the game loop
 need no changes.
 
-The demo loads `onnxruntime-web` from a CDN on demand.
+The demo loads `onnxruntime-web` from `node_modules/` (served by the dev
+server as a static root — no CDN, works offline / on slow mirrors).
 
 ## How the bridge works
 

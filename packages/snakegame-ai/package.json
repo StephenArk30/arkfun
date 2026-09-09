@@ -34,5 +34,8 @@
   },
   "dependencies": {
     "@arkfun/snakegame": "workspace:*"
+  },
+  "devDependencies": {
+    "onnxruntime-web": "1.19.0"
   }
 }

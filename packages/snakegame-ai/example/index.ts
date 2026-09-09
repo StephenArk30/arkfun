@@ -11,9 +11,10 @@ import {
 } from '../src/index';
 import type { StrategyPlayer, OrtLike } from '../src/index';
 
-// onnxruntime-web 以 UMD 全局脚本按需从 CDN 加载（wasm 同目录自动拉取），
-// 避免 rollup 打包 ~MB 级运行时
-const ORT_CDN = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.0/dist/ort.min.js';
+// onnxruntime-web 以 UMD 全局脚本按需加载：dev server 把
+// node_modules/onnxruntime-web/dist 作为静态根（wasm 同目录自动拉取），
+// 无外网 CDN 依赖，离线 / 国内镜像不稳定也能开箱即用
+const ORT_URL = 'ort.min.js';
 const WINDOW_SIZE = 15;
 
 // 键盘模式作为特殊策略 id，不进注册表（无异步加载过程）
@@ -128,22 +129,27 @@ async function frame() {
 
 async function loadOrt(): Promise<OrtLike> {
   if (ortLoading === null) {
-    ortLoading = new Promise<OrtLike>((resolve, reject) => {
+    const loading = new Promise<OrtLike>((resolve, reject) => {
       const existing = (window as unknown as { ort?: OrtLike }).ort;
       if (existing != null) {
         resolve(existing);
         return;
       }
       const script = document.createElement('script');
-      script.setAttribute('src', ORT_CDN);
+      script.setAttribute('src', ORT_URL);
       script.onload = () => {
         const { ort } = window as unknown as { ort?: OrtLike };
         if (ort == null) reject(new Error('onnxruntime-web 加载后全局 ort 不存在'));
         else resolve(ort);
       };
-      script.onerror = () => reject(new Error(`加载 onnxruntime-web 失败：${ORT_CDN}`));
+      script.onerror = () => reject(
+        new Error(`加载 onnxruntime-web 失败：${ORT_URL}（依赖未安装？先在仓库根目录 pnpm install）`),
+      );
       document.head.appendChild(script);
     });
+    // 失败不永久缓存 rejected promise：清空后重选策略 / 上传模型可再次尝试
+    loading.catch(() => { if (ortLoading === loading) ortLoading = null; });
+    ortLoading = loading;
   }
   return ortLoading;
 }
@@ -168,7 +174,7 @@ async function selectStrategy(id: string) {
   } catch (err) {
     strategyId = HUMAN;
     status(`策略「${strategy.label}」加载失败：${err instanceof Error ? err.message : String(err)}`
-      + '（先运行训练与 export.py，或用文件选择器上传 .onnx）');
+      + '（模型缺失请先运行 export.py 导出，或用文件选择器上传 .onnx）');
   }
 }
 

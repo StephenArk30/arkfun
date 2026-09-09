@@ -1,6 +1,7 @@
 import { getDevConfig } from '@arkfun/pkg-cli';
 import { RollupHtmlTemplateOptions, makeHtmlAttributes } from '@rollup/plugin-html';
 import serve from 'rollup-plugin-serve';
+import type { Plugin } from 'rollup';
 
 const config = getDevConfig('example/index.ts', {
   useTs: true,
@@ -74,9 +75,12 @@ const config = getDevConfig('example/index.ts', {
 
 // 把 getDevConfig 内置的 serve('dist') 替换为多目录：
 // dist（构建产物）优先，models/（onnx 模型 + compare.json）兜底，
-// demo 用根相对路径（'ppo.onnx'、'compare.json'）加载，无需拷贝步骤
-config.plugins = config.plugins.map(
-  (plugin) => (plugin && plugin.name === 'serve' ? serve(['dist', 'models']) : plugin),
+// node_modules/onnxruntime-web/dist（ort 运行时 + wasm）兜底，
+// demo 用根相对路径（'ppo.onnx'、'ort.min.js'）加载，无需拷贝步骤、无 CDN 依赖
+config.plugins = (config.plugins as Plugin[]).map(
+  (plugin) => (plugin && plugin.name === 'serve'
+    ? serve({ contentBase: ['dist', 'models', 'node_modules/onnxruntime-web/dist'] })
+    : plugin),
 );
 
 export default config;
