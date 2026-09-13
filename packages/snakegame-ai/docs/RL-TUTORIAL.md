@@ -383,14 +383,24 @@ actor 负责"玩"，critic 负责"评价玩得好不好"。critic 自己用普�
 | 算账 | 价值 V、优势 A、γ 折扣 | 3, 4, 6 |
 | 更新 | 策略梯度、clip、actor-critic | 5, 7 |
 
-训练中值得盯的曲线（`tensorboard --logdir .../output/tensorboard`）：
+训练中值得盯的曲线（`uv run --package snakegame-ai tensorboard
+--logdir .../output/tensorboard`）：
 
-- `rollout/ep_rew_mean`：平均每局总奖励。**核心指标**，正常走势是前几十
-  万步剧烈波动，然后缓慢爬升。这条线涨，说明蛇在变强。
+- `rollout/ep_score_mean`：平均每局得分（吃到几颗食物）。**核心指标**，
+  最直观的"蛇有多强"。这条线涨，说明蛇在变强。
+- `rollout/ep_rew_mean`：平均每局总奖励（含 step/death 等惩罚项和塑形
+  项），走势应与 ep_score_mean 大体一致。附带 `ep_len_mean` 是平均
+  局长：先变长（学会活命）再适度变短（学会高效行动）。
 - `train/explained_variance`：critic 的预测准不准。1.0 是满分，0 附近
   等于瞎猜。健康训练中它应该爬到 0.8 以上。
 - `train/approx_kl`：每轮更新新旧策略的实际差距。常年远大于 0.02 的话，
-  说明在用大步幅硬闯，可以调小学习率。
+  说明在用大步幅硬闯——本项目已设 `target_kl=0.03` 让它自动刹车，
+  若仍冲高可调小学习率。
+- `train/entropy_loss`：策略的探索余量（Discrete(3) 满探索约 −1.1）。
+  早期掉到 −0.3 以下（近确定性）而 ep_score_mean 还趴着，说明探索
+  死得太早——这正是加 `ent_coef=0.01` 熵奖励的原因。
+- BC+PPO 路线（`imitate.py`）另有 `bc/cross_entropy`、`bc/value_mse`：
+  行为克隆阶段的 actor 与 value head 起点水平。
 
 对了，还记得第 1 节说"你用一百局学会，它用一百万局"吗？64 条蛇并行、
 每秒上千步，一百万步其实只要十几分钟。所谓的"大量试错"，在机器的时间

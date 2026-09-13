@@ -137,6 +137,8 @@ PPO 是 on-policy 强化学习算法，循环执行三件事：
 | batch size | 512 | 每轮数据切 minibatch 更新多轮 |
 | 学习率 | 3e-4 | Adam |
 | γ（折扣因子） | 0.99 | 未来奖励的折算权重 |
+| target_kl | 0.03 | 单轮更新 KL 超阈值即提前停止，防策略被一次更新打崩 |
+| ent_coef | 0.01 | 熵奖励，保持探索直到发现食物（无此项熵会坍塌到近确定性） |
 
 ### 5.2 奖励设计
 
@@ -146,7 +148,21 @@ PPO 是 on-policy 强化学习算法，循环执行三件事：
 | 每走一步 | −0.01 | 促使蛇高效行动，不无限绕圈 |
 | 死亡（墙/蛇身/障碍） | −1 | 显式惩罚 |
 | 占满全图（胜利） | +10 | 稀有的终极奖励 |
-| 500 步超时 | 截断（无奖励） | 只终止 episode，不算死亡 |
+| 500 步超时 | 截断（无奖励） | 只终止 episode，不算死亡；SB3 会用值函数 bootstrap（见下） |
+| 靠近食物 | +0.1×Δd | 势能塑形（`--shape-coef 0.1`）：每步按曼哈顿距离减少量给密集正信号 |
+
+两条容易踩坑的设计说明：
+
+- **超时截断的 bootstrap**：500 步超时不是真终止（蛇还活着，环境只是
+  换局）。`env.py` 在 info 里带 `terminal_observation` +
+  `TimeLimit.truncated`，SB3 据此对截断步做价值 bootstrap。若缺失，
+  PPO 会把"熬到超时"当成合法的避罚手段（未来负奖励一笔勾销），
+  训练出只会安全绕圈的策略。
+- **势能塑形**：`r += 0.1 × (d_prev − d_new)`（d 为蛇头到食物的曼哈顿
+  距离）。食物奖励是稀疏的 +1，且食物常在 15×15 观察窗口之外；塑形
+  提供逐格的密集梯度，让"朝食物移动"立刻得到反馈。γ=1 的简化势能
+  塑形不改变最优策略排序（各项沿轨迹 telescoping 抵消），`--shape-coef 0`
+  可完全关闭。
 
 ### 5.3 域随机化（Domain Randomization）
 
@@ -168,8 +184,11 @@ PPO 是 on-policy 强化学习算法，循环执行三件事：
 `imitate.py` 提供第二条训练路线（AlphaGo 的两段式，贪吃蛇版）：
 
 1. **行为克隆（BC）**：用 snakegame 内置的 A* 启发式当老师，在同样的
-   域随机化配置下 rollout 约 5 万条 (观察， 老师动作) 样本，对策略网络的
-   actor 路径做交叉熵监督训练；
+   域随机化配置下 rollout 约 10 万条 (观察， 老师动作) 样本，对策略网络的
+   actor 路径做交叉熵监督训练，同时对 value head 回归老师轨迹的折现
+   return-to-go（critic 若随机初始化，PPO 微调的 advantage 全是噪声，
+   几轮更新就会毁掉 BC 学到的策略——这是历史上 BC+PPO 退化到纯 PPO
+   水平的主因）；
 2. **PPO 微调**：从 BC 权重出发照常 `learn()`。
 
 动机：纯 PPO 前期大量梯度花在"追食物、别撞墙"这类低级技能上，老师能
@@ -220,7 +239,16 @@ demo 里推理每步只做一次前向（argmax，非采样），在浏览器本
 **Q：训练多久够用？**
 默认配置下，数百万步（约几十分钟～几小时，取决于机器）通常能让
 score 达到两位数并稳定；泛化质量随训练量持续改善。用 TensorBoard
-（`rollout/ep_rew_mean`）观察收敛趋势即可。
+观察收敛趋势：
+
+```bash
+uv run --package snakegame-ai tensorboard \
+  --logdir packages/snakegame-ai/src/training/output/tensorboard
+```
+
+重点看 `rollout/ep_score_mean`（平均每局得分，核心指标）、
+`rollout/ep_rew_mean`（平均每局总奖励）和 `train/approx_kl`
+（健康值 < 0.03 量级，冲高说明更新过猛）。
 
 **Q：模型会"想"吗？**
 不会。它是一个纯反应式策略：看到当前观察，立即输出动作，没有记忆、

@@ -17,6 +17,7 @@ from pathlib import Path
 from stable_baselines3 import PPO
 
 from bridge import DEFAULT_WINDOW_SIZE, SnakeBridge
+from callbacks import ScoreMeanCallback
 from env import DomainConfig, SnakeVecEnv
 from policy import SnakeFeaturesExtractor
 
@@ -44,11 +45,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--step-reward", type=float, default=-0.01)
     parser.add_argument("--death-reward", type=float, default=-1.0)
     parser.add_argument("--win-reward", type=float, default=10.0)
+    # 食物距离势能塑形系数（0 = 关闭；>0 时每步 reward += coef*(d_prev−d_new)）
+    parser.add_argument("--shape-coef", type=float, default=0.1)
     # PPO
     parser.add_argument("--n-envs", type=int, default=64)
     parser.add_argument("--rollout-steps", type=int, default=256)
     parser.add_argument("--batch-size", type=int, default=512)
     parser.add_argument("--learning-rate", type=float, default=3e-4)
+    # 约束更新幅度与保持探索：无 target_kl 时 late-run approx_kl 会冲到
+    # 0.1 以上（clip_fraction 0.2+），策略被单次更新破坏；熵坍塌会让
+    # 探索在发现食物之前就死亡
+    parser.add_argument("--target-kl", type=float, default=0.03)
+    parser.add_argument("--ent-coef", type=float, default=0.01)
     parser.add_argument("--total-timesteps", type=int, default=1_000_000)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--output", type=Path, default=OUTPUT_DIR / "ppo_snake.zip")
@@ -70,7 +78,9 @@ def main() -> None:
         death_reward=args.death_reward,
         win_reward=args.win_reward,
     )
-    env = SnakeVecEnv(bridge, domain, n_envs=args.n_envs, seed=args.seed)
+    env = SnakeVecEnv(
+        bridge, domain, n_envs=args.n_envs, seed=args.seed, shape_coef=args.shape_coef
+    )
 
     model = PPO(
         "MultiInputPolicy",
@@ -83,17 +93,30 @@ def main() -> None:
         batch_size=args.batch_size,
         learning_rate=args.learning_rate,
         gamma=0.99,
+        target_kl=args.target_kl,
+        ent_coef=args.ent_coef,
         seed=args.seed,
         verbose=1,
         tensorboard_log=str(OUTPUT_DIR / "tensorboard"),
     )
-    model.learn(total_timesteps=args.total_timesteps, progress_bar=True)
+    model.learn(
+        total_timesteps=args.total_timesteps,
+        progress_bar=True,
+        callback=[ScoreMeanCallback()],
+    )
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     model.save(args.output)
+    # 显式收尾：关闭 SummaryWriter 与 V8 bridge。不关 SummaryWriter 时，
+    # Python 3.13 退出阶段的 GC finalizer 会 join EventFileWriter 的后台
+    # 线程，而此时 GIL 已冻结 → 进程在保存模型之后挂死不退出。
+    model.logger.close()
+    env.close()
     print(f"model saved to {args.output}")
     print(f"next: uv run --package snakegame-ai python "
           f"{TRAINING_DIR / 'export.py'} --model {args.output}")
+    print(f"curves: uv run --package snakegame-ai tensorboard "
+          f"--logdir {OUTPUT_DIR / 'tensorboard'}")
 
 
 if __name__ == "__main__":

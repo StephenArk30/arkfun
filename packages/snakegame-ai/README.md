@@ -83,6 +83,31 @@ Artifacts:
   `compare.json` (small, committed to git so a fresh clone can run the demo
   out of the box).
 
+## Watch training curves
+
+Loss curves (`train/loss`, `train/value_loss`, …), episode reward/length
+(`rollout/ep_rew_mean`, `rollout/ep_len_mean`), the score curve
+(`rollout/ep_score_mean` — mean food eaten per episode, the headline metric),
+and BC-stage losses (`bc/cross_entropy`, `bc/value_mse` in the BC+PPO run)
+are all logged to TensorBoard under `src/training/output/tensorboard`:
+
+```bash
+uv run --package snakegame-ai tensorboard \
+  --logdir packages/snakegame-ai/src/training/output/tensorboard
+# open http://localhost:6006
+```
+
+Training tips (all CLI-overridable):
+
+- `--shape-coef` (default 0.1): potential-based food-distance reward shaping.
+  Dense "move toward food" gradient on top of the sparse +1 food reward;
+  set 0 to disable. Affects both PPO rewards and BC teacher data.
+- `--target-kl` (default 0.03): early-stops the PPO epochs when the policy
+  update gets too large — without it, late-run `approx_kl` blows past 0.1 and
+  single updates damage the policy.
+- `--ent-coef` (default 0.01): entropy bonus that keeps exploration alive
+  until food-seeking behavior is discovered.
+
 ## Web demo
 
 ```bash
