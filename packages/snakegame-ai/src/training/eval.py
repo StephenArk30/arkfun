@@ -70,6 +70,10 @@ def evaluate(model: PPO, cfg: EvalConfig, window_size: int, rng: np.random.Gener
             newly_done = alive & result.done
             steps[alive] += 1
             scores[newly_done] = result.scores[newly_done]
+            # 关键：把 step 产生的新观察写回，否则策略永远盯着初始画面
+            # 做开环控制（表现为"安全绕圈不吃食物"，把好模型评成 0 分）
+            windows[alive] = result.windows[alive]
+            scalars[alive] = result.scalars[alive]
             done |= result.done
         return {
             "mean_score": float(scores.mean()),
