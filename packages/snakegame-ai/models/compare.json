@@ -16,7 +16,7 @@
       30,
       60
     ],
-    "generated": "2026-09-09T16:48:59+00:00",
+    "generated": "2026-09-12T17:22:54+00:00",
     "window_size": 15
   },
   "policies": [
@@ -26,20 +26,20 @@
       "cells": {
         "8x8": {
           "0": {
-            "score": 0.15,
-            "steps": 217.9
+            "score": 13.75,
+            "steps": 97.0
           },
           "5": {
-            "score": 0.05,
-            "steps": 243.3
+            "score": 5.25,
+            "steps": 51.7
           },
           "15": {
-            "score": 0.1,
-            "steps": 154.4
+            "score": 1.6,
+            "steps": 98.5
           },
           "30": {
-            "score": 0.2,
-            "steps": 65.7
+            "score": 0.8,
+            "steps": 29.8
           },
           "60": {
             "score": 0.05,
@@ -48,112 +48,112 @@
         },
         "12x12": {
           "0": {
-            "score": 0.15,
-            "steps": 462.0
+            "score": 19.4,
+            "steps": 204.8
           },
           "5": {
-            "score": 0.15,
-            "steps": 461.6
+            "score": 14.75,
+            "steps": 157.2
           },
           "15": {
-            "score": 0.1,
-            "steps": 375.9
+            "score": 6.7,
+            "steps": 132.4
           },
           "30": {
-            "score": 0.05,
-            "steps": 289.4
+            "score": 1.5,
+            "steps": 389.4
           },
           "60": {
-            "score": 0.1,
-            "steps": 145.8
+            "score": 0.45,
+            "steps": 206.1
           }
         },
         "16x16": {
           "0": {
-            "score": 0.05,
-            "steps": 770.5
+            "score": 24.7,
+            "steps": 325.5
           },
           "5": {
-            "score": 0.0,
-            "steps": 922.9
+            "score": 23.15,
+            "steps": 318.2
           },
           "15": {
-            "score": 0.05,
-            "steps": 921.9
+            "score": 12.0,
+            "steps": 383.2
           },
           "30": {
-            "score": 0.0,
-            "steps": 769.3
+            "score": 5.4,
+            "steps": 384.2
           },
           "60": {
-            "score": 0.0,
-            "steps": 462.2
+            "score": 0.75,
+            "steps": 423.2
           }
         },
         "20x20": {
           "0": {
-            "score": 0.05,
-            "steps": 1282.9
+            "score": 27.0,
+            "steps": 520.4
           },
           "5": {
-            "score": 0.0,
-            "steps": 1441.1
+            "score": 23.75,
+            "steps": 558.7
           },
           "15": {
-            "score": 0.0,
-            "steps": 1361.1
+            "score": 18.6,
+            "steps": 492.1
           },
           "30": {
-            "score": 0.0,
-            "steps": 1201.2
+            "score": 4.4,
+            "steps": 1033.0
           },
           "60": {
-            "score": 0.0,
-            "steps": 1121.5
+            "score": 1.3,
+            "steps": 982.9
           }
         },
         "25x25": {
           "0": {
-            "score": 0.05,
-            "steps": 2251.8
+            "score": 29.05,
+            "steps": 739.0
           },
           "5": {
-            "score": 0.05,
-            "steps": 2127.6
+            "score": 26.7,
+            "steps": 792.9
           },
           "15": {
-            "score": 0.0,
-            "steps": 2375.8
+            "score": 17.6,
+            "steps": 857.0
           },
           "30": {
-            "score": 0.05,
-            "steps": 1877.7
+            "score": 13.9,
+            "steps": 671.8
           },
           "60": {
-            "score": 0.0,
-            "steps": 1626.8
+            "score": 6.1,
+            "steps": 1261.2
           }
         },
         "30x30": {
           "0": {
-            "score": 0.1,
-            "steps": 2704.9
+            "score": 29.95,
+            "steps": 911.2
           },
           "5": {
-            "score": 0.05,
-            "steps": 2883.8
+            "score": 28.2,
+            "steps": 890.5
           },
           "15": {
-            "score": 0.0,
-            "steps": 1986.2
+            "score": 28.1,
+            "steps": 737.5
           },
           "30": {
-            "score": 0.05,
-            "steps": 2524.1
+            "score": 20.2,
+            "steps": 1393.3
           },
           "60": {
-            "score": 0.0,
-            "steps": 2522.9
+            "score": 6.75,
+            "steps": 2154.1
           }
         }
       }
@@ -164,134 +164,134 @@
       "cells": {
         "8x8": {
           "0": {
-            "score": 0.2,
-            "steps": 218.2
+            "score": 10.45,
+            "steps": 79.7
           },
           "5": {
-            "score": 0.1,
-            "steps": 231.1
+            "score": 4.85,
+            "steps": 57.2
           },
           "15": {
-            "score": 0.05,
-            "steps": 142.1
+            "score": 1.55,
+            "steps": 51.6
           },
           "30": {
-            "score": 0.2,
-            "steps": 40.0
+            "score": 0.5,
+            "steps": 3.0
           },
           "60": {
-            "score": 0.05,
-            "steps": 1.1
+            "score": 0.0,
+            "steps": 1.0
           }
         },
         "12x12": {
           "0": {
-            "score": 0.05,
-            "steps": 433.5
+            "score": 16.35,
+            "steps": 212.9
           },
           "5": {
-            "score": 0.1,
-            "steps": 461.9
+            "score": 12.8,
+            "steps": 147.8
           },
           "15": {
-            "score": 0.1,
-            "steps": 347.6
+            "score": 5.7,
+            "steps": 115.0
           },
           "30": {
-            "score": 0.0,
-            "steps": 261.3
+            "score": 0.9,
+            "steps": 40.5
           },
           "60": {
-            "score": 0.1,
-            "steps": 145.6
+            "score": 0.2,
+            "steps": 32.4
           }
         },
         "16x16": {
           "0": {
-            "score": 0.05,
-            "steps": 872.1
+            "score": 20.25,
+            "steps": 258.1
           },
           "5": {
-            "score": 0.0,
-            "steps": 871.8
+            "score": 14.45,
+            "steps": 173.0
           },
           "15": {
-            "score": 0.05,
-            "steps": 922.2
+            "score": 9.75,
+            "steps": 229.1
           },
           "30": {
-            "score": 0.05,
-            "steps": 616.3
+            "score": 2.55,
+            "steps": 390.4
           },
           "60": {
-            "score": 0.0,
-            "steps": 513.1
+            "score": 0.4,
+            "steps": 365.1
           }
         },
         "20x20": {
           "0": {
-            "score": 0.0,
-            "steps": 1282.0
+            "score": 22.3,
+            "steps": 423.9
           },
           "5": {
-            "score": 0.0,
-            "steps": 1441.1
+            "score": 23.0,
+            "steps": 358.2
           },
           "15": {
-            "score": 0.0,
-            "steps": 1281.5
+            "score": 10.8,
+            "steps": 418.1
           },
           "30": {
-            "score": 0.0,
-            "steps": 962.8
+            "score": 5.75,
+            "steps": 487.2
           },
           "60": {
-            "score": 0.0,
-            "steps": 1041.8
+            "score": 1.8,
+            "steps": 512.1
           }
         },
         "25x25": {
           "0": {
-            "score": 0.0,
-            "steps": 2003.0
+            "score": 24.05,
+            "steps": 585.6
           },
           "5": {
-            "score": 0.0,
-            "steps": 2126.9
+            "score": 18.4,
+            "steps": 603.3
           },
           "15": {
-            "score": 0.0,
-            "steps": 2126.7
+            "score": 14.05,
+            "steps": 528.9
           },
           "30": {
-            "score": 0.05,
-            "steps": 1877.3
+            "score": 9.7,
+            "steps": 678.5
           },
           "60": {
-            "score": 0.05,
-            "steps": 1627.5
+            "score": 4.6,
+            "steps": 600.2
           }
         },
         "30x30": {
           "0": {
-            "score": 0.05,
-            "steps": 3062.8
+            "score": 19.15,
+            "steps": 788.3
           },
           "5": {
-            "score": 0.05,
-            "steps": 2884.7
+            "score": 24.3,
+            "steps": 751.1
           },
           "15": {
-            "score": 0.0,
-            "steps": 2882.2
+            "score": 15.7,
+            "steps": 735.5
           },
           "30": {
-            "score": 0.05,
-            "steps": 2881.4
+            "score": 16.55,
+            "steps": 1125.0
           },
           "60": {
-            "score": 0.0,
-            "steps": 2343.5
+            "score": 4.4,
+            "steps": 1186.5
           }
         }
       }
@@ -302,20 +302,20 @@
       "cells": {
         "8x8": {
           "0": {
-            "score": 18.7,
-            "steps": 120.2
+            "score": 18.5,
+            "steps": 120.0
           },
           "5": {
-            "score": 9.65,
-            "steps": 63.1
+            "score": 9.7,
+            "steps": 65.9
           },
           "15": {
-            "score": 3.25,
-            "steps": 27.8
+            "score": 2.65,
+            "steps": 34.9
           },
           "30": {
-            "score": 1.35,
-            "steps": 5.7
+            "score": 1.3,
+            "steps": 5.3
           },
           "60": {
             "score": 0.1,
@@ -324,112 +324,112 @@
         },
         "12x12": {
           "0": {
-            "score": 26.1,
-            "steps": 232.3
+            "score": 24.5,
+            "steps": 224.2
           },
           "5": {
-            "score": 19.95,
-            "steps": 187.4
+            "score": 19.2,
+            "steps": 172.3
           },
           "15": {
-            "score": 9.8,
-            "steps": 99.4
+            "score": 11.8,
+            "steps": 124.2
           },
           "30": {
-            "score": 4.6,
-            "steps": 83.5
+            "score": 4.9,
+            "steps": 84.0
           },
           "60": {
-            "score": 1.1,
-            "steps": 11.2
+            "score": 1.15,
+            "steps": 11.9
           }
         },
         "16x16": {
           "0": {
-            "score": 28.65,
-            "steps": 337.1
+            "score": 25.35,
+            "steps": 292.3
           },
           "5": {
-            "score": 24.7,
-            "steps": 295.2
+            "score": 24.6,
+            "steps": 293.7
           },
           "15": {
-            "score": 18.4,
-            "steps": 241.7
+            "score": 17.8,
+            "steps": 229.7
           },
           "30": {
-            "score": 8.55,
+            "score": 8.8,
             "steps": 110.3
           },
           "60": {
-            "score": 2.0,
-            "steps": 85.5
+            "score": 2.9,
+            "steps": 102.2
           }
         },
         "20x20": {
           "0": {
-            "score": 34.4,
-            "steps": 511.4
+            "score": 31.2,
+            "steps": 448.3
           },
           "5": {
-            "score": 25.0,
-            "steps": 366.8
+            "score": 28.1,
+            "steps": 411.6
           },
           "15": {
-            "score": 21.8,
-            "steps": 330.3
+            "score": 24.6,
+            "steps": 366.5
           },
           "30": {
-            "score": 16.35,
-            "steps": 252.0
+            "score": 16.6,
+            "steps": 262.7
           },
           "60": {
-            "score": 5.75,
-            "steps": 93.3
+            "score": 4.9,
+            "steps": 237.1
           }
         },
         "25x25": {
           "0": {
-            "score": 44.6,
-            "steps": 823.0
+            "score": 39.4,
+            "steps": 714.5
           },
           "5": {
-            "score": 41.0,
-            "steps": 760.2
+            "score": 40.5,
+            "steps": 728.8
           },
           "15": {
-            "score": 29.35,
-            "steps": 540.5
+            "score": 30.45,
+            "steps": 564.0
           },
           "30": {
-            "score": 24.5,
-            "steps": 458.9
+            "score": 24.3,
+            "steps": 454.6
           },
           "60": {
-            "score": 10.85,
-            "steps": 348.4
+            "score": 11.1,
+            "steps": 350.4
           }
         },
         "30x30": {
           "0": {
-            "score": 39.15,
-            "steps": 852.5
+            "score": 41.8,
+            "steps": 883.5
           },
           "5": {
-            "score": 44.8,
-            "steps": 975.5
+            "score": 39.95,
+            "steps": 881.5
           },
           "15": {
-            "score": 36.6,
-            "steps": 796.1
+            "score": 41.2,
+            "steps": 887.5
           },
           "30": {
-            "score": 30.0,
-            "steps": 658.4
+            "score": 31.55,
+            "steps": 689.5
           },
           "60": {
-            "score": 15.6,
-            "steps": 351.4
+            "score": 15.8,
+            "steps": 356.9
           }
         }
       }
